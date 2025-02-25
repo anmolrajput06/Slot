@@ -7,9 +7,13 @@ const paylines = require("../helper/paylines");
 const spin = async (req, res) => {
   const { playerId, betAmount } = req.body;
   const MAX_WIN_LIMIT = 250000;
-  const RTP_PERCENTAGE = 92;
+  const RTP_PERCENTAGE = 100;
 
   try {
+
+
+
+
     const player = await Player.findById(playerId);
     if (!player) return res.status(404).json({ msg: "Player not found" });
 
@@ -20,7 +24,7 @@ const spin = async (req, res) => {
     const symbols = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
     let reels = Array.from({ length: 5 }, () =>
-      Array.from({ length: 3 }, () => symbols[Math.floor(Math.random() * symbols.length)])
+      Array.from({ length: 4 }, () => symbols[Math.floor(Math.random() * symbols.length)])
     );
 
     if (!isValidReelState(reels)) {
@@ -52,9 +56,11 @@ const spin = async (req, res) => {
     res.json({
       msg: "Spin complete",
       reels,
-      totalWin: parseFloat(adjustedWin),
+      // totalWin: parseFloat(adjustedWin),
+      totalWin,
       winningLines,
       freeSpinsWon,
+      randomeReels: generateRandomReels()
     });
   } catch (err) {
     console.error("Malfunction detected:", err);
@@ -66,6 +72,29 @@ const isValidReelState = (reels) => {
   const validSymbols = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
   return reels.flat().every(symbol => validSymbols.includes(symbol));
 };
+
+
+const generateRandomReels = () => {
+  const reelStrip = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"];
+  let reels = [];
+
+  for (let i = 0; i < 5; i++) {
+    let randomIndex = Math.floor(Math.random() * reelStrip.length);
+    let reel = [
+      reelStrip[randomIndex % reelStrip.length],
+      reelStrip[(randomIndex + 1) % reelStrip.length],
+      reelStrip[(randomIndex + 2) % reelStrip.length],
+      reelStrip[(randomIndex + 3) % reelStrip.length]
+
+    ];
+    reels.push(reel);
+  }
+
+  return reels;
+};
+
+console.log(generateRandomReels());
+
 
 const freeSpin = async (req, res) => {
   const { playerId } = req.body;

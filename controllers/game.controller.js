@@ -1,3 +1,4 @@
+
 const Player = require("../models/player");
 const SlotGame = require("../models/game");
 const { checkPaylineWin } = require("../helper/calculateWin");
@@ -6,7 +7,7 @@ const paylines = require("../helper/paylines");
 const spin = async (req, res) => {
   const { playerId, betAmount } = req.body;
   const MAX_WIN_LIMIT = 250000;
-  const RTP_PERCENTAGE = 92
+  const RTP_PERCENTAGE = 92;
 
   try {
     const player = await Player.findById(playerId);
@@ -15,14 +16,13 @@ const spin = async (req, res) => {
     if (player.coins < betAmount) {
       return res.status(400).json({ msg: "Not enough coins" });
     }
-    //  WILD=0,A=1,K=2 ,Q=3, J=4, 10=5 , FEATURE=6 ,GOLD FEATURE=7 ,PERSISTING WILD=8
 
-    const symbols = ["0", "6", "7", "9", "1", "2", "3", "4", "5"];
+    const symbols = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
     let reels = Array.from({ length: 5 }, () =>
       Array.from({ length: 3 }, () => symbols[Math.floor(Math.random() * symbols.length)])
     );
- 
+
     if (!isValidReelState(reels)) {
       return res.status(500).json({ msg: "Malfunction detected. Spin voided." });
     }
@@ -34,8 +34,6 @@ const spin = async (req, res) => {
     const featureCount = reels.flat().filter(symbol => symbol.includes("7")).length;
     const freeSpinsWon = featureCount >= 5 ? Math.min(5 + (featureCount - 5) * 5, 80) : 0;
 
-    let persistingWilds = reels.map(row => row.map(symbol => symbol === "8" ? true : false));
-
     player.coins = player.coins - betAmount + parseFloat(adjustedWin);
     player.freeSpins += freeSpinsWon;
     await player.save();
@@ -44,7 +42,6 @@ const spin = async (req, res) => {
       playerId,
       reels,
       freeSpins: freeSpinsWon,
-      // persistingWilds,
       totalWin: parseFloat(adjustedWin),
       winningLines,
       status: "Completed",
@@ -58,7 +55,6 @@ const spin = async (req, res) => {
       totalWin: parseFloat(adjustedWin),
       winningLines,
       freeSpinsWon,
-      // persistingWilds,
     });
   } catch (err) {
     console.error("Malfunction detected:", err);
@@ -67,11 +63,9 @@ const spin = async (req, res) => {
 };
 
 const isValidReelState = (reels) => {
-  const validSymbols = ["0", "6", "7", "9", "1", "2", "3", "4", "5"];
+  const validSymbols = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
   return reels.flat().every(symbol => validSymbols.includes(symbol));
 };
-
-
 
 const freeSpin = async (req, res) => {
   const { playerId } = req.body;
@@ -90,3 +84,4 @@ const freeSpin = async (req, res) => {
 };
 
 module.exports = { spin, freeSpin };
+

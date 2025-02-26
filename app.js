@@ -31,11 +31,8 @@ app.use(cors(corsOpts));
 
 
 
-mongoose.connect('mongodb://192.168.1.9:27017/SLOT', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+mongoose.connect('mongodb://192.168.1.15:27017/SLOT')
 
-})
   .then(() => {
     console.log('Connected to MongoDB');
   })

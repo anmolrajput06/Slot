@@ -1,67 +1,128 @@
-const paylines = require("./paylines");
+const lines = require("./paylines");
 
 const checkPaylineWin = (reels, betAmount) => {
   let totalWin = 0;
   let winningLines = [];
+  const payoutTable = {
+    "0": { 3: 0.20, 4: 1, 5: 5 },   // manbear
+    "1": { 3: 0.15, 4: 0.50, 5: 1.50 }, // mahal
+    "2": { 3: 0.15, 4: 0.50, 5: 1.25 }, // TBIER
+    "3": { 3: 0.15, 4: 0.50, 5: 1 }, //jug
+    "4": { 3: 15, 4: 0.25, 5: 1 },
+    "5": { 3: 0.10, 4: 50, 5: 1 },
+    "6": { 3: 0.10, 4: 50, 5: 1 },
+    "7": { 3: 0.5, 4: 0.15, 5: 0.75 }, //bluehert
+    "8": { 3: 0.5, 4: 0.15, 5: 0.75 }, //redhert
+    "9": { 3: 0.5, 4: 0.15, 5: 0.75 }, //patte
+    "10": { 3: 0.5, 4: 0.15, 5: 0.75 }, //et
+    "11": { 3: 15, 4: 50, 5: 125 }, // Wild
+    "12": { 3: 15, 4: 50, 5: 125 },  //
+    "13": { 3: 15, 4: 50, 5: 125 },
+    "14": { 3: 15, 4: 50, 5: 125 },
+    "15": { 3: 15, 4: 50, 5: 125 }
+  };
 
-  paylines.forEach((line) => {
-    let matchCount = 0;
-    let firstSymbol = null;
-    let visitedReels = new Set(); // Track reels to avoid duplicate counts
-    let isContinuous = true;
+  const lines = [
+    [0, 0, 0, 0, 0],
+    [3, 3, 3, 3, 3],
+    [1, 1, 1, 1, 1],
+    [2, 2, 2, 2, 2],
+    [3, 2, 1, 2, 3],
+    [0, 1, 2, 1, 0],
+    [2, 1, 0, 1, 2],
+    [1, 2, 3, 2, 1],
+    [2, 1, 3, 1, 2],
+    [3, 2, 3, 2, 3],
+    [0, 1, 0, 1, 0],
+    [3, 1, 3, 1, 3],
+    [1, 0, 1, 0, 1],
+    [0, 2, 0, 2, 0],
+    [1, 2, 0, 2, 1],
+    [3, 2, 2, 2, 3],
+    [1, 0, 0, 0, 1],
+    [2, 3, 3, 3, 2],
+    [1, 2, 2, 2, 1],
+    [1, 1, 2, 1, 1],
+    [0, 0, 1, 0, 0],
+    [3, 3, 2, 3, 3],
+    [1, 1, 0, 1, 1],
+    [2, 2, 3, 2, 2],
+    [2, 1, 1, 1, 2],
+    [2, 2, 1, 2, 2],
+    [0, 0, 0, 1, 2],
+    [3, 3, 3, 2, 1],
+    [2, 2, 1, 0, 0],
+    [0, 1, 1, 1, 2],
+    [0, 0, 1, 2, 2],
+    [3, 3, 2, 1, 1],
+    [1, 1, 2, 3, 3],
+    [0, 1, 2, 2, 2],
+    [3, 2, 3, 3, 3],
+    [3, 2, 2, 2, 1],
+    [1, 0, 1, 2, 1],
+    [2, 3, 2, 1, 2],
+    [0, 1, 0, 0, 0],
+    [3, 2, 1, 1, 1]
 
-    for (let reelIndex = 0; reelIndex < line.length; reelIndex++) {
-      const rowIndex = line[reelIndex];
-      const symbol = reels[reelIndex][rowIndex];
+  ];
 
-      if (firstSymbol === null && symbol !== "11") {
-        firstSymbol = symbol; // First symbol set karna
-      }
+  if (!lines || !Array.isArray(lines)) {
+    console.error("Lines data is missing or incorrect.");
+    return { totalWin: 0, winningLines: [] };
+  }
 
-      if (visitedReels.has(reelIndex)) {
-        continue; // Agar reel pehle count ho chuki hai toh skip
-      }
+  for (let l = 0; l < lines.length; l++) {
+    let sym = 0;
+    let wild = "11";
+    let lineData = [
+      reels[0][lines[l][0]],
+      reels[1][lines[l][1]],
+      reels[2][lines[l][2]],
+      reels[3][lines[l][3]],
+      reels[4][lines[l][4]]
+    ];
 
-      if (symbol === firstSymbol || symbol === "11") {
-        matchCount++;
-        visitedReels.add(reelIndex); // Mark reel as visited
-      } else {
-        isContinuous = false; // Agar mismatch hua toh break karna
+    for (let s = 0; s < lineData.length; s++) {
+      if (lineData[s] != wild) {
+        sym = lineData[s];
         break;
       }
     }
 
-    if (matchCount >= 3 && isContinuous) {
-      const payoutMultiplier = getPayout(firstSymbol, matchCount);
-      const winAmount =   payoutMultiplier;
-      totalWin += winAmount;
+    let currentWin = 0;
+    let winData = null;
 
-      winningLines.push({ line, symbol: firstSymbol, matchCount, payout: winAmount });
+    if (
+      (lineData[0] == sym || lineData[0] == wild) &&
+      (lineData[1] == sym || lineData[1] == wild) &&
+      (lineData[2] == sym || lineData[2] == wild) &&
+      (lineData[3] == sym || lineData[3] == wild) &&
+      (lineData[4] == sym || lineData[4] == wild)) {
+      currentWin = payoutTable[sym][5]
+      winData = { symbol: sym, lineNumber: l + 1, line: lines[l], lineData, symbolCount: 5, totalWin: currentWin };
+    } else if (
+      (lineData[0] == sym || lineData[0] == wild) &&
+      (lineData[1] == sym || lineData[1] == wild) &&
+      (lineData[2] == sym || lineData[2] == wild) &&
+      (lineData[3] == sym || lineData[3] == wild)) {
+      currentWin = payoutTable[sym][4]
+      winData = { symbol: sym, lineNumber: l + 1, line: lines[l], lineData, symbolCount: 4, totalWin: currentWin };
+    } else if (
+      (lineData[0] == sym || lineData[0] == wild) &&
+      (lineData[1] == sym || lineData[1] == wild) &&
+      (lineData[2] == sym || lineData[2] == wild)) {
+      currentWin = payoutTable[sym][3]
+      winData = { symbol: sym, lineNumber: l + 1, line: lines[l], lineData, symbolCount: 3, totalWin: currentWin };
     }
-  });
+
+    if (winData) {
+      totalWin += winData.totalWin;
+      winningLines.push(winData);
+    }
+  }
 
   return { totalWin, winningLines };
 };
 
-const getPayout = (symbol, count) => {
-  const payoutTable = {
-    "0": { 3: 20, 4: 100, 5: 500 },
-    "1": { 3: 15, 4: 50, 5: 150 },
-    "2": { 3: 15, 4: 50, 5: 125 },
-    "3": { 3: 15, 4: 50, 5: 125 },
-    "4": { 3: 15, 4: 50, 5: 125 },
-    "5": { 3: 15, 4: 50, 5: 125 },
-    "6": { 3: 15, 4: 50, 5: 125 },
-    "7": { 3: 15, 4: 50, 5: 125 },
-    "8": { 3: 15, 4: 50, 5: 125 },
-    "9": { 3: 15, 4: 50, 5: 125 },
-    "10": { 3: 15, 4: 50, 5: 125 },
-    "11": { 3: 15, 4: 50, 5: 125 }, // Wild
-    "12": { 3: 15, 4: 50, 5: 125 },
-    "13": { 3: 15, 4: 50, 5: 125 },
-    "14": { 3: 15, 4: 50, 5: 125 }
-  };
-  return payoutTable[symbol]?.[count] || 0;
-};
 
 module.exports = { checkPaylineWin };

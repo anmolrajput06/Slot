@@ -6,6 +6,8 @@ const PlayerSchema = new mongoose.Schema({
     password: { type: String, required: true },
     coins: { type: Number, default: 1000 }, 
     freeSpins: { type: Number, default: 0 }, 
+    isfreespin: { type: Boolean, default: false }
+
 },
     {
         timestamps: true

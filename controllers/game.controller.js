@@ -159,30 +159,11 @@ const spin = async (req, res) => {
 };
 
 
-console.log(lockedSpin, "lockedSpin");
-
 const isValidReelState = (reels) => {
   const validSymbols = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"];
   return reels.flat().every(symbol => validSymbols.includes(symbol));
 };
 
 
-
-const freeSpin = async (req, res) => {
-  const { playerId } = req.body;
-
-  try {
-    let player = await Player.findById(playerId);
-    if (!player || player.freeSpins <= 0) return res.status(400).json({ msg: "No free spins available" });
-
-    player.freeSpins -= 1;
-    await player.save();
-
-    return res.json({ msg: "Free spin used", remainingFreeSpins: player.freeSpins });
-  } catch (err) {
-    return res.status(500).json({ msg: "Server error" });
-  }
-};
-
-module.exports = { spin, freeSpin };
+module.exports = { spin };
 

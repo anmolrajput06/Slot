@@ -14,7 +14,6 @@ const spin = async (req, res) => {
     if (!player) return res.status(404).json({ msg: "Player not found" });
 
     if (player && player.isfreespin == false) {
-      console.log("no spin");
 
       if (player.coins < betAmount) {
         return res.status(400).json({ msg: "Not enough coins" });
@@ -38,6 +37,13 @@ const spin = async (req, res) => {
       }
 
       const { totalWin, winningLines } = checkPaylineWin(reels, betAmount);
+      let totalBet = betAmount
+      console.log(totalBet, "totalBet");
+      console.log(totalWin, "totalWin");
+      let RTP = (totalWin / totalBet) * 100;
+
+      console.log(RTP, "RTP");
+
       let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
       let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
       const reelsWith13 = reels.filter(reel => reel.some(symbol => symbol.includes("13"))).length;
@@ -114,7 +120,7 @@ const spin = async (req, res) => {
         }
 
         // lockedSpin.spins.push(reels);
-        lockedSpin.spins = [reels]; 
+        lockedSpin.spins = [reels];
 
         const { totalWin, winningLines } = checkPaylineWin(reels, 0);
         let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
@@ -157,13 +163,50 @@ const spin = async (req, res) => {
     res.status(500).json({ msg: "Malfunction voids all pays and plays." });
   }
 };
+const generateRandomReels = () => {
+  const reelStrip = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"];
+  let reels = [];
 
+  for (let i = 0; i < 5; i++) {
+    let randomIndex = Math.floor(Math.random() * reelStrip.length);
+    let reel = [
+      reelStrip[randomIndex % reelStrip.length],
+      reelStrip[(randomIndex + 1) % reelStrip.length],
+      reelStrip[(randomIndex + 2) % reelStrip.length],
+      reelStrip[(randomIndex + 3) % reelStrip.length]
+
+    ];
+    reels.push(reel);
+  }
+
+  return reels;
+};
 
 const isValidReelState = (reels) => {
   const validSymbols = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"];
   return reels.flat().every(symbol => validSymbols.includes(symbol));
 };
 
+const looping = async (req, res) => {
+  try {
+    const results = [];
 
-module.exports = { spin };
+    for (let i = 0; i < 1000; i++) {
+      const Req = { body: req.body };
+      const Res = {
+        json: (data) => results.push(data),
+        status: () => fakeRes,
+      };
+
+      await spin(Req, Res);
+    }
+
+    res.json({ message: "Looping complete", results: results });
+  } catch (error) {
+    res.status(500).json({ message: "Error in looping", error });
+  }
+};
+
+
+module.exports = { spin, looping };
 

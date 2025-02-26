@@ -71,6 +71,8 @@ const checkPaylineWin = (reels, betAmount) => {
     return { totalWin: 0, winningLines: [] };
   }
 
+
+
   for (let l = 0; l < lines.length; l++) {
     let sym = 0;
     let wild = "11";
@@ -117,6 +119,9 @@ const checkPaylineWin = (reels, betAmount) => {
 
     if (winData) {
       totalWin += winData.totalWin;
+      const totalBet = betAmount * lines.length;
+      let RTP = (totalWin / totalBet) * 100;
+      // console.log(`RTP: ${RTP.toFixed(2)}%`);
       winningLines.push(winData);
     }
   }

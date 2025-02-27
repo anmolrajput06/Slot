@@ -10,6 +10,14 @@ const spin = async (req, res) => {
   const RTP_PERCENTAGE = 100;
 
   try {
+    const reelStrip = {
+      1: ["4", "5", "6", "0", "5", "0", "11", "8", "7", "9", "10", "1", "5", "6", "12", "13", "14", "15", "1", "2", "11", "4", "5", "3", "11"],
+      2: ["6", "5", "4", "6", "1", "4", "11", "8", "7", "9", "10", "4", "5", "6", "12", "13", "14", "15", "1", "2", "6", "5", "0", "3", "4"],
+      3: ["1", "4", "6", "5", "4", "6", "11", "8", "7", "9", "10", "4", "5", "6", "12", "13", "14", "15", "1", "2", "1", "6", "0", "3", "11"],
+      4: ["4", "6", "5", "4", "6", "5", "11", "8", "7", "9", "10", "4", "5", "6", "12", "13", "14", "15", "1", "2", "4", "6", "0", "3", "11"],
+      5: ["6", "4", "5", "6", "4", "5", "11", "8", "7", "9", "10", "1", "5", "6", "12", "13", "14", "15", "1", "2", "11", "5", "0", "3", "11", "4"]
+    };
+
     const player = await Player.findById(playerId);
     if (!player) return res.status(404).json({ msg: "Player not found" });
 
@@ -18,12 +26,17 @@ const spin = async (req, res) => {
       if (player.coins < betAmount) {
         return res.status(400).json({ msg: "Not enough coins" });
       }
+      // let reels = Array.from({ length: 5 }, () =>
+      //   Array.from({ length: 4 }, () => symbols[Math.floor(Math.random() * symbols.length)])
+      // );
+      let reels = [
+        await generateRandomReels(reelStrip[1]),
+        await generateRandomReels(reelStrip[2]),
+        await generateRandomReels(reelStrip[3]),
+        await generateRandomReels(reelStrip[4]),
+        await generateRandomReels(reelStrip[5])
+      ];
 
-      const symbols = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"];
-
-      let reels = Array.from({ length: 5 }, () =>
-        Array.from({ length: 4 }, () => symbols[Math.floor(Math.random() * symbols.length)])
-      );
 
       // let reels = [
       //   ['14', '13', '2', '11'],
@@ -38,11 +51,9 @@ const spin = async (req, res) => {
 
       const { totalWin, winningLines } = checkPaylineWin(reels, betAmount);
       let totalBet = betAmount
-      console.log(totalBet, "totalBet");
-      console.log(totalWin, "totalWin");
+
       let RTP = (totalWin / totalBet) * 100;
 
-      console.log(RTP, "RTP");
 
       let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
       let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
@@ -51,7 +62,7 @@ const spin = async (req, res) => {
       const featureCount = (reelsWith13 == 5 || reelsWith12 == 5) ? 5 : 0;
       const freeSpinsWon = featureCount >= 5 ? Math.min(5 + (featureCount - 5) * 5, 80) : 0;
 
-      player.coins = player.coins - betAmount + parseFloat(adjustedWin);
+      player.coins = player.coins - betAmount + totalWin
       player.freeSpins += freeSpinsWon;
       if (freeSpinsWon != 0) {
         player.isfreespin = true
@@ -67,15 +78,16 @@ const spin = async (req, res) => {
         status: "Completed",
       });
 
-      await gameData.save();
+      // await gameData.save();
 
       res.json({
         msg: "Spin complete",
-        reels,
         // totalWin: parseFloat(adjustedWin),
         totalWin,
         winningLines,
         freeSpinsWon,
+        RTP,
+        reels,
         // randomeReels: generateRandomReels()
       });
     } else {
@@ -137,15 +149,15 @@ const spin = async (req, res) => {
           status: "Completed",
         });
 
-        await gameData.save();
+        // await gameData.save();
 
         res.json({
           msg: "Spin complete",
-          reels,
           // totalWin: parseFloat(adjustedWin),
           totalWin,
           winningLines,
           freeSpinsWon: 0,
+          reels,
           // randomeReels: generateRandomReels()
         });
 
@@ -163,23 +175,14 @@ const spin = async (req, res) => {
     res.status(500).json({ msg: "Malfunction voids all pays and plays." });
   }
 };
-const generateRandomReels = () => {
-  const reelStrip = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"];
-  let reels = [];
-
-  for (let i = 0; i < 5; i++) {
-    let randomIndex = Math.floor(Math.random() * reelStrip.length);
-    let reel = [
-      reelStrip[randomIndex % reelStrip.length],
-      reelStrip[(randomIndex + 1) % reelStrip.length],
-      reelStrip[(randomIndex + 2) % reelStrip.length],
-      reelStrip[(randomIndex + 3) % reelStrip.length]
-
-    ];
-    reels.push(reel);
-  }
-
-  return reels;
+const generateRandomReels = (reelStrip) => {
+  let randomInt = Math.floor(Math.random() * (reelStrip.length));
+  let resultReel = [];
+  resultReel.push(reelStrip[(randomInt + 0) % reelStrip.length]);
+  resultReel.push(reelStrip[(randomInt + 1) % reelStrip.length]);
+  resultReel.push(reelStrip[(randomInt + 2) % reelStrip.length]);
+  resultReel.push(reelStrip[(randomInt + 3) % reelStrip.length]);
+  return resultReel;
 };
 
 const isValidReelState = (reels) => {
@@ -189,23 +192,54 @@ const isValidReelState = (reels) => {
 
 const looping = async (req, res) => {
   try {
-    const results = [];
+    let totalWinSum = 0;
+    let totalBetAmount = 0;
+    let totalFreeSpins = 0;
+    let totalWins = 0; // Count of total wins
+    let results = [];
 
     for (let i = 0; i < 1000; i++) {
       const Req = { body: req.body };
       const Res = {
-        json: (data) => results.push(data),
-        status: () => fakeRes,
+        json: (data) => {
+          if (data.totalWin !== undefined) {
+            totalWinSum += data.totalWin;
+            if (data.totalWin > 0) {
+              totalWins++; // Increment only if there is a win
+            }
+          }
+          if (!data.freeSpinActive && req.body.betAmount) {
+            totalBetAmount += Number(req.body.betAmount);
+          }
+          if (data.freeSpinsWon !== undefined) {
+            totalFreeSpins += data.freeSpinsWon;
+          }
+          results.push(data);
+        },
+        status: () => Res,
       };
 
+      console.log(i, "=>", "RTP", (totalWinSum / totalBetAmount) * 100, "totalWins count => ", totalWins, "total win= ", totalWinSum, "total bet = ", totalBetAmount);
       await spin(Req, Res);
     }
 
-    res.json({ message: "Looping complete", results: results });
+    totalBetAmount -= totalFreeSpins * Number(req.body.betAmount);
+    let RTP = (totalWinSum / totalBetAmount) * 100;
+
+    res.json({
+      message: "1000 spins complete",
+      totalWin: totalWinSum,
+      totalBet: totalBetAmount < 0 ? 0 : totalBetAmount,
+      totalRTP: RTP,
+      totalFreeSpins: totalFreeSpins,
+      // totalWinsCount: totalWins, // Add total winning count
+      // sampleResults: results,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error in looping", error });
   }
 };
+
 
 
 module.exports = { spin, looping };

@@ -11,13 +11,14 @@ const spin = async (req, res) => {
 
   try {
     const reelStrip = {
-      1: ["0", "1", "2", "3", "10", "0", "1", "10", "3", "10", "2", "10", "0", "5", "10", "1", "0", "3", "2", "10", "1", "0", "10", "2", "3", "10"],
-      2: ["0", "1", "2", "3", "10", "2", "3", "10", "1", "10", "4", "10", "5", "6", "10", "2", "0", "3", "1", "10", "0", "10", "3", "2", "10", "1"],
-      3: ["0", "1", "2", "3", "10", "3", "1", "10", "2", "10", "4", "10", "5", "10", "6", "10", "3", "0", "1", "2", "10", "0", "10", "2", "3", "1"],
-      4: ["0", "1", "2", "3", "10", "1", "2", "10", "3", "10", "4", "10", "5", "10", "6", "10", "1", "0", "3", "2", "10", "0", "10", "3", "1", "2"],
-      5: ["0", "1", "2", "3", "10", "3", "2", "10", "1", "10", "4", "10", "5", "10", "6", "10", "2", "0", "1", "3", "10", "0", "10", "2", "3", "1"]
+      1: [0, 1, 2, 3, 10, 0, 1, 10, 3, 10, 2, 10, 0, 5, 10, 1, 0, 3, 2, 10, 1, 0, 10, 2, 3, 10],
+      2: [0, 1, 2, 3, 10, 2, 3, 10, 1, 10, 4, 10, 5, 6, 10, 2, 0, 3, 1, 10, 0, 10, 3, 2, 10, 1],
+      3: [0, 1, 2, 3, 10, 3, 1, 10, 2, 10, 4, 10, 5, 10, 6, 10, 3, 0, 1, 2, 10, 0, 10, 2, 3, 1],
+      4: [0, 1, 2, 3, 10, 1, 2, 10, 3, 10, 4, 10, 5, 10, 6, 10, 1, 0, 3, 2, 10, 0, 10, 3, 1, 2],
+      5: [0, 1, 2, 3, 10, 3, 2, 10, 1, 10, 4, 10, 5, 10, 6, 10, 2, 0, 1, 3, 10, 0, 10, 2, 3, 1]
     };
-    steckyReel = [{1: [0, 0, 0, 0], 2: [0, 0, 0, 0], 3: [0, 0, 0, 0], 4: [0, 0, 0, 0], 5: [0, 0, 0, 0], }]
+
+    let response = {};
 
     const player = await Player.findById(playerId);
     if (!player) return res.status(404).json({ msg: "Player not found" });
@@ -28,21 +29,21 @@ const spin = async (req, res) => {
         return res.status(400).json({ msg: "Not enough coins" });
       }
 
-      // let reels = [
-      //   await generateRandomReels(reelStrip[1]),
-      //   await generateRandomReels(reelStrip[2]),
-      //   await generateRandomReels(reelStrip[3]),
-      //   await generateRandomReels(reelStrip[4]),
-      //   await generateRandomReels(reelStrip[5])
-      // ];
-
       let reels = [
-        ['4', '11', '1', '1'],
-        ['12', '11', '11', '11'],
-        ['5', '12', '11', '10'],
-        ['11', '3', '1', '13'],
-        ['12', '1', '3', '5']
-      ]
+        await generateRandomReels(reelStrip[1]),
+        await generateRandomReels(reelStrip[2]),
+        await generateRandomReels(reelStrip[3]),
+        await generateRandomReels(reelStrip[4]),
+        await generateRandomReels(reelStrip[5])
+      ];
+
+      // let reels = [
+      //   [4, 11, 12, 1],
+      //   [12, 11, 11, 11],
+      //   [5, 2, 1, 10],
+      //   [11, 3, 1, 13],
+      //   [12, 1, 3, 5]
+      // ]
 
       if (!isValidReelState(reels)) {
         return res.status(500).json({ msg: "Malfunction detected. Spin voided." });
@@ -55,7 +56,7 @@ const spin = async (req, res) => {
       let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
 
       function calculateFreeSpins(reels) {
-        let symbolsToCheck = ["11", "12"];
+        let symbolsToCheck = [11, 12];
         let accumulatedCount = 0;
         let totalFreeSpins = 0;
         let foundFirstSymbol = false;
@@ -109,29 +110,44 @@ const spin = async (req, res) => {
 
       // await gameData.save();
 
-      if (freeSpinsWon != 0) {
-        lockedSpin.spins = [reels];
-      }
+      // if (freeSpinsWon != 0) {
+      lockedSpin.spins = [reels];
+      // }
       console.log(lockedSpin.spins, "lockedSpin.spins.length ", lockedSpin.spins.length);
+      steckyReels = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
-      res.json({
-        
+      response = {
+        bet: betAmount,
+        win: totalWin,
         freeSpinWin: freeSpinsWon,
-        totalWin,
-        reels,
+        reels: await convertReel(reels),
         winData: winningLines,
-        steckyReel,
-      
+        steckyReel: await convertReel(steckyReels),
+      };
+      res.json({
+
+        // freeSpinWin: freeSpinsWon,
+        // totalWin,
+        // reels,
+        // winData: winningLines,
+        // steckyReel,
+        statusCode: 1,
+        message: "Success",
+        result: response
       });
+
+
+
     } else {
       try {
         const reelStrip = {
-          1: ["0", "1", "2", "3", "10", "0", "1", "10", "3", "10", "2", "11", "12", "13", "10", "0", "5", "10", "1", "0", "3", "2", "10", "1", "0", "10", "2", "3", "10"],
-          2: ["0", "1", "2", "3", "10", "2", "3", "10", "1", "10", "4", "10", "5", "6", "10", "11", "12", "13", "2", "0", "3", "1", "10", "0", "10", "3", "2", "10", "1"],
-          3: ["0", "1", "2", "3", "10", "3", "1", "10", "2", "10", "4", "10", "5", "10", "6", "11", "12", "13", "10", "3", "0", "1", "2", "10", "0", "10", "2", "3", "1"],
-          4: ["0", "1", "2", "3", "10", "1", "2", "10", "3", "10", "4", "10", "5", "10", "6", "10", "11", "12", "13", "1", "0", "3", "2", "10", "0", "10", "3", "1", "2"],
-          5: ["0", "1", "2", "3", "10", "3", "2", "10", "1", "10", "4", "10", "5", "10", "6", "11", "12", "13", "10", "2", "0", "1", "3", "10", "0", "10", "2", "3", "1"]
+          1: [0, 1, 2, 3, 10, 0, 1, 10, 3, 10, 2, 10, 0, 5, 10, 1, 0, 3, 2, 10, 1, 0, 10, 2, 3, 10],
+          2: [0, 1, 2, 3, 10, 2, 3, 10, 1, 10, 4, 10, 5, 6, 10, 2, 0, 3, 1, 10, 0, 10, 3, 2, 10, 1],
+          3: [0, 1, 2, 3, 10, 3, 1, 10, 2, 10, 4, 10, 5, 10, 6, 10, 3, 0, 1, 2, 10, 0, 10, 2, 3, 1],
+          4: [0, 1, 2, 3, 10, 1, 2, 10, 3, 10, 4, 10, 5, 10, 6, 10, 1, 0, 3, 2, 10, 0, 10, 3, 1, 2],
+          5: [0, 1, 2, 3, 10, 3, 2, 10, 1, 10, 4, 10, 5, 10, 6, 10, 2, 0, 1, 3, 10, 0, 10, 2, 3, 1]
         };
+        let response = {};
 
         if (!reelStrip || Object.keys(reelStrip).length < 5) {
           throw new Error("reelStrip is not properly initialized!");
@@ -139,8 +155,16 @@ const spin = async (req, res) => {
         let reels
         console.log(lockedSpin.spins.length === 0, lockedSpin.spins);
 
-
         if (lockedSpin.spins.length === 0) {
+
+          steckyReel = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0]
+          ];
+
           reels = [
             generateRandomReels(reelStrip[1]),
             generateRandomReels(reelStrip[2]),
@@ -148,8 +172,37 @@ const spin = async (req, res) => {
             generateRandomReels(reelStrip[4]),
             generateRandomReels(reelStrip[5])
           ];
-        } else {
-          let previousReels = lockedSpin.spins[lockedSpin.spins.length - 1];
+
+          lockedSpin.spins = [reels];
+
+          const { totalWin, winningLines } = checkPaylineWin(reels, 0);
+          let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
+          let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
+
+          response = {
+            bet: 0,
+            win: totalWin,
+            freeSpinWin: 0,
+            reels: await convertReel(reels),
+            winData: winningLines,
+            steckyReel: await convertReel(steckyReels),
+          };
+          res.json({
+            // msg: "Free Spin complete",
+            // freeSpinWin: 0,
+            // totalWin,
+            // reels,
+            // winData: winningLines,
+            // steckyReel
+
+
+            statusCode: 0,
+            message: " Free Spin Success",
+            result: response
+          });
+        }
+        else {
+          let previousReels = lockedSpin.spins.length > 0 ? lockedSpin.spins[lockedSpin.spins.length - 1] : [];
 
           while (Array.isArray(previousReels) && previousReels.length === 1) {
             previousReels = previousReels[0];
@@ -157,32 +210,48 @@ const spin = async (req, res) => {
 
           reels = [];
           let canConvert = true;
+          let continueProcess = true;
+          if (!lockedSpin.steckyReel) {
+            lockedSpin.steckyReel = [
+              [0, 0, 0, 0],
+              [0, 0, 0, 0],
+              [0, 0, 0, 0],
+              [0, 0, 0, 0],
+              [0, 0, 0, 0]
+            ];
+          }
+
+          let steckyReel = lockedSpin.steckyReel;
 
           for (let colIndex = 1; colIndex <= 5; colIndex++) {
             if (!Array.isArray(reelStrip[colIndex])) {
-              reelStrip[colIndex] = ["0", "1", "2", "3", "4"];
+              reelStrip[colIndex] = [0, 1, 2, 3, 4];
             }
 
             let newReel = [];
             let randomReel = generateRandomReels(reelStrip[colIndex]);
 
-            let has11or12 = previousReels[colIndex - 1].some(symbol => symbol === "11" || symbol === "12");
+            let has11or12 = previousReels[colIndex - 1]?.some(symbol => symbol == 11 || symbol == 12) ?? false;
 
             if (!has11or12) {
-              canConvert = false;
+              continueProcess = false;
             }
 
-            for (let rowIndex = 0; rowIndex < previousReels[colIndex - 1].length; rowIndex++) {
-              let symbol = previousReels[colIndex - 1][rowIndex];
-              let randomSymbol = String(Math.floor(Math.random() * 14) + 1);
+            for (let rowIndex = 0; rowIndex < (previousReels[colIndex - 1]?.length || 0); rowIndex++) {
+              let symbol = previousReels[colIndex - 1]?.[rowIndex] ?? 0;
 
-              if (canConvert && symbol === "12") {
-                newReel.push("14");
-              } else if (symbol === "14") {
-                newReel.push("14");
-              } else {
-                newReel.push(randomReel[rowIndex] ?? randomSymbol);
+              let randomSymbol;
+              do {
+                randomSymbol = Math.floor(Math.random() * 13) + 1;
+              } while (randomSymbol == 14);
+
+              if (continueProcess) {
+                if (symbol === 12 && steckyReel[colIndex - 1][rowIndex] !== 1) {
+                  steckyReel[colIndex - 1][rowIndex] = 1;
+                }
               }
+
+              newReel.push(randomReel[rowIndex] ?? randomSymbol);
             }
 
             reels.push(newReel);
@@ -191,30 +260,35 @@ const spin = async (req, res) => {
           if (reels.length !== 5 || reels.some(col => col.length !== 4)) {
             throw new Error("Reels array is malformed!");
           }
+
+          lockedSpin.spins = [reels];
+
+          const { totalWin, winningLines } = checkPaylineWin(reels, 0);
+          let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
+          let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
+          response = {
+            bet: 0,
+            win: totalWin,
+            freeSpinWin: 0,
+            reels: await convertReel(reels),
+            winData: winningLines,
+            steckyReel: await convertReel(steckyReel),
+          };
+          res.json({
+            // msg: "Free Spin complete",
+            // freeSpinWin: 0,
+            // totalWin,
+            // reels,
+            // winData: winningLines,
+            // steckyReel
+
+
+            statusCode: 0,
+            message: " Free Spin Success",
+            result: response
+          });
         }
 
-        lockedSpin.spins.push(reels);
-
-        console.log(reels, "Updated Reels:", lockedSpin.spins);
-
-
-        lockedSpin.spins.push(reels);
-
-        console.log(reels, "00000000000000000000",
-          lockedSpin.spins);
-
-        const { totalWin, winningLines } = checkPaylineWin(reels, 0);
-        let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
-        let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
-
-        res.json({
-          msg: "Free Spin complete",
-          freeSpinWin:0,
-          totalWin,
-          reels,
-          winData: winningLines,
-          steckyReel
-        });
       } catch (err) {
         console.error("Malfunction detected:", err);
         res.status(500).json({ msg: "Malfunction voids all pays and plays." });
@@ -239,7 +313,7 @@ const generateRandomReels = (reelStrip) => {
 };
 
 const isValidReelState = (reels) => {
-  const validSymbols = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"];
+  const validSymbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   return reels.flat().every(symbol => validSymbols.includes(symbol));
 };
 
@@ -293,10 +367,17 @@ const looping = async (req, res) => {
   }
 };
 
+async function convertReel(reels) {
 
-function getRandomSymbol(reelStrip) {
-  const allSymbols = Object.values(reelStrip).flat();
-  return allSymbols[Math.floor(Math.random() * allSymbols.length)];
+  let response = [
+    { reel: reels[0] },
+    { reel: reels[1] },
+    { reel: reels[2] },
+    { reel: reels[3] },
+    { reel: reels[4] },
+  ];
+  return response;
 }
+
 module.exports = { spin, looping };
 

@@ -1,14 +1,14 @@
 const Player = require("../models/roosterPlayer.js");
 
 const paytable = {
-    "0": 0.25,  //scatter
-    "1": 5.0, //"golden_rooster"
-    "2": 1.0,//"purple_rooster"
-    "3": 0.50, //"red_rooster"
-    "4": 0.20, //"white_rooster"
-    "5": 0.07,// "dark_blue_rooster"
-    "6": 0.05, // "blue_rooster"
-    "7": 0.03  //"green_rooster"
+    0: 0.25,  //scatter
+    1: 5.0, //"golden_rooster"
+    2: 1.0,//"purple_rooster"
+    3: 0.50, //"red_rooster"
+    4: 0.20, //"white_rooster"
+    5: 0.07,// "dark_blue_rooster"
+    6: 0.05, // "blue_rooster"
+    7: 0.03  //"green_rooster"
 };
 const paylines = [
     [1, 1, 1],
@@ -20,14 +20,14 @@ const paylines = [
 
 function spinReels() {
     const symbols = [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7"
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
     ];
     return Array.from({ length: 9 }, () => symbols[Math.floor(Math.random() * symbols.length)]);
 }
@@ -37,12 +37,12 @@ function calculateWinnings(reels, bet) {
     let scatterCount = 0;
     paylines.forEach((line) => {
         const symbol = reels[line[0]];
-        if (symbol == reels[line[1]] && symbol == reels[line[2]] && symbol !== "0") {
+        if (symbol == reels[line[1]] && symbol == reels[line[2]] && symbol !== 0) {
             totalWin += paytable[symbol] * bet;
         }
     });
     reels.forEach((symbol) => {
-        if (symbol == "0") scatterCount++;
+        if (symbol == 0) scatterCount++;
     });
     if (scatterCount >= 3) totalWin += paytable.scatter * bet;
     return { totalWin, scatterCount };
@@ -94,8 +94,8 @@ const spin = async (req, res) => {
 
     if (gamble && totalWin > 0) {
         riskGame = playRiskGame(totalWin);
-        if (riskGame.result === "win") player.balance += totalWin;
-        else if (riskGame.result === "lose") player.balance -= totalWin;
+        if (riskGame.result == "win") player.balance += totalWin;
+        else if (riskGame.result == "lose") player.balance -= totalWin;
     } else {
         player.balance += totalWin - bet;
     }

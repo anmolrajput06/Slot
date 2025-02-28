@@ -29,13 +29,13 @@ const spin = async (req, res) => {
         return res.status(400).json({ msg: "Not enough coins" });
       }
 
-      // let reels = [
-      //   await generateRandomReels(reelStrip[1]),
-      //   await generateRandomReels(reelStrip[2]),
-      //   await generateRandomReels(reelStrip[3]),
-      //   await generateRandomReels(reelStrip[4]),
-      //   await generateRandomReels(reelStrip[5])
-      // ];
+      let reels = [
+        await generateRandomReels(reelStrip[1]),
+        await generateRandomReels(reelStrip[2]),
+        await generateRandomReels(reelStrip[3]),
+        await generateRandomReels(reelStrip[4]),
+        await generateRandomReels(reelStrip[5])
+      ];
 
       // let reels = [
       //   [4, 11, 12, 1],
@@ -45,13 +45,13 @@ const spin = async (req, res) => {
       //   [12, 1, 3, 5]
       // ]
 
-      let reels = [
-        [12, 12, 12, 12],
-        [12, 12, 12, 12],
-        [12, 12, 12, 12],
-        [12, 12, 12, 12],
-        [12, 12, 12, 12]
-      ]
+      // let reels = [
+      //   [12, 12, 12, 12],
+      //   [12, 12, 12, 12],
+      //   [12, 12, 12, 12],
+      //   [12, 12, 12, 12],
+      //   [12, 12, 12, 12]
+      // ]
       if (!isValidReelState(reels)) {
         return res.status(500).json({ msg: "Malfunction detected. Spin voided." });
       }

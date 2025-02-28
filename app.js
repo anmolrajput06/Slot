@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const gameRoute = require('./routes/game.js');
+const RoosterRoute = require('./routes/rooster.js')
+
 const playerRoute = require('./routes/player.js')
 
 
@@ -45,6 +47,8 @@ app.get('/', (req, res) => {
 
 app.use('/game', gameRoute);
 app.use('/player',playerRoute)
+app.use('/rooster_game',RoosterRoute)
+
 
 // Start the server
 const port = process.env.PORT || 3002;

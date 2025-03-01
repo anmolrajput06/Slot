@@ -1,9 +1,9 @@
 const Player = require("../models/roosterPlayer.js");
-const { checkPaylineWin } = require("../helper/roosterWinCalculate.js")
+const { checkPaylineWin, checkFightOutcome } = require("../helper/roosterWinCalculate.js")
 
 
 const spin = async (req, res) => {
-    const { username, bet, gamble } = req.body;
+    const { username, bet, gamble, isFightMode } = req.body;
     const player = await Player.findOne({ username });
     if (!player || player.balance < bet) return res.status(400).send("Insufficient balance");
 
@@ -25,29 +25,19 @@ const spin = async (req, res) => {
         [4, 0, 5],
         [0, 0, 3],
     ]
+
     const { totalWin, isFight, winningLines } = checkPaylineWin(reels, bet);
 
-
-
     if (isFight) {
-        console.log("fighting the game");
 
-        response = {
-            bet: bet,
-            isFight,
-            win: totalWin,
-            reels: await convertReel(reels),
-            winData: winningLines,
-            // steckyReel: await convertReel(steckyReels),
-        };
+        // let reel = [1, 2, 3, 4, 5, 6, 7]
+        // myplayersym = 1
+        // oppsitesym = 6
+        // relel = [[1, 6, 0],
+        // [0, 1, 6], [1, 0, 6]]
+    }
 
-
-        return res.json({
-            statusCode: 1,
-            message: "Success",
-            result: response
-        });
-    } else {
+    else {
 
         response = {
             bet: bet,

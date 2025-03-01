@@ -81,4 +81,55 @@ const checkPaylineWin = (reels, betAmount) => {
     return { totalWin, winningLines, isFight };
 };
 
-module.exports = { checkPaylineWin };
+
+
+const fightAmounts = [300, 400, 500, 750, 1000, 1500];
+
+const checkFightOutcome = (reels, paylines) => {
+    let fightLevel = 1;
+    let fightRound = 1;
+    let playerPoints = 0;
+    let opponentPoints = 0;
+    let maxRounds = 5;
+    
+    while (fightLevel <= 6) {
+        let myPlayerSym = reels[Math.floor(Math.random() * reels.length)][Math.floor(Math.random() * 3)];
+        let opponentPlayerSym = reels[Math.floor(Math.random() * reels.length)][Math.floor(Math.random() * 3)];
+
+        let playerWin = 0;
+        let opponentWin = 0;
+
+        // Check if myPlayerSym is part of a payline
+        let playerMatch = paylines.some(payline =>
+            payline.every((pos, index) => reels[index][pos] === myPlayerSym)
+        );
+
+        if (playerMatch) {
+            playerWin = fightAmounts[fightLevel - 1];
+            opponentWin = 0; // Opponent gets nothing if player wins by payline match
+        }
+        
+        playerPoints += playerWin;
+        opponentPoints += opponentWin;
+
+        if (playerPoints > opponentPoints) {
+            fightLevel++;
+        } else if (playerPoints < opponentPoints) {
+            fightLevel++;
+        } else {
+            fightRound++;
+        }
+
+        if (fightRound > maxRounds) fightRound++;
+
+        let hasScatter = reels.some(row => row.includes(0));
+        if (hasScatter) fightRound += 3;
+
+        if (fightLevel > 6) break;
+    }
+
+    return { fightLevel, fightRound, playerPoints, opponentPoints };
+};
+
+
+module.exports = { checkPaylineWin,checkFightOutcome };

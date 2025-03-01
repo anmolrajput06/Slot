@@ -492,3 +492,185 @@ const checkPaylineWin = (reels, betAmount) => {
 };
 
 module.exports = { checkPaylineWin };
+
+
+
+if (isFight) {
+  console.log("fighting the game");
+
+  let randumSym = [1, 2, 3, 4, 5, 6, 7]
+  let myPlayerSym, opponentPlayerSym, opponentPoints = 0, playerPoints = 0, fightLevel, fightRound
+
+  response = {
+      bet: bet,
+      isFight,
+      win: totalWin,
+      reels: await convertReel(reels),
+      winData: winningLines,
+      // steckyReel: await convertReel(steckyReels),
+  };
+
+
+  return res.json({
+      statusCode: 1,
+      message: "Success",
+      result: response
+  });
+} else {
+is case me mujhe yr reel se ek randum number myPlayerSym ko assign krna hai or ek randum sym opponentPlayerSym ko  assign krna hai the uske bad fightLevel isko incrrece krke 1 krna hai fir 
+let reels = [
+  [0, 3, 5],
+  [4, 0, 5],
+  [0, 0, 3],
+]
+const { totalWin,, winningLines } = checkPaylineWin(reels); isse usnko apne apne totalWin data dena hai 
+yadi playerPoints ka poitn ya amount opponentPoints isse jada hai toh amount plus ho jayega or fightLevel iska level 2 ho jayege ese hi h har bar check krke age badana hai
+or isme har level pr maximum round 5 hai ya yadi  5 hi level pr dono k amount same ho toh  round ko bdate jayege jese 6 se bad 6 kaar dene fir se same hua toh 7 kr dege 
+or yadi is time pr toh ksii bhi level pr hmoko scaater mil jate hai toh round me 3 round or add kr dena hai
+or fight level 6 level tk hoga
+fight 1 ka amount hai  300
+second k 400
+third ka 500
+forth ka 750
+five ka 1000
+final sic ka1500 hai  krke do
+
+if (isFight) {
+  let fightLevel = 1;
+  let fightRound = 1;
+  let playerPoints = 0;
+  let opponentPoints = 0;
+  let maxRounds = 5;
+  const fightAmounts = [300, 400, 500, 750, 1000, 1500];
+
+  while (fightLevel <= 6) {
+      let myPlayerSym = reels[Math.floor(Math.random() * reels.length)][Math.floor(Math.random() * 3)];
+      let opponentPlayerSym = reels[Math.floor(Math.random() * reels.length)][Math.floor(Math.random() * 3)];
+
+      const { totalWin: playerWin } = checkPaylineWin(reels);
+      const { totalWin: opponentWin } = checkPaylineWin(reels);
+
+      playerPoints += playerWin;
+      opponentPoints += opponentWin;
+
+      if (playerPoints > opponentPoints) {
+          playerPoints += fightAmounts[fightLevel - 1];
+          fightLevel++;
+      } else if (playerPoints < opponentPoints) {
+          opponentPoints += fightAmounts[fightLevel - 1];
+          fightLevel++;
+      } else {
+          fightRound++;
+      }
+
+      if (fightRound > maxRounds) fightRound++;
+
+      let hasScatter = reels.some(row => row.includes(7));
+      if (hasScatter) fightRound += 3;
+
+      if (fightLevel > 6) break;
+  }
+
+  response.fightData = { fightLevel, fightRound, playerPoints, opponentPoints };
+
+  return res.json({
+      statusCode: 1,
+      message: "Success",
+      result: response
+  });
+}
+
+
+isme mujhe ek jhi reel dena hai 1 se 7 tk ki
+fir uske bad 2 randum number dena hai like 2 ya 4 ese ek myplayer me aayeg  or ek oppositeplayer me aayeg a
+uske bad fight ka level start hoga1 se ye 6 tk hoga har ek fight mr 5  5 roud hoge mean 5 bar totalsum count hoga yadi dono ke equal hote ho toh ye 5 roude se bad kr aage 6 pr ho jayeg ekmean dono k equl nhi hona chiye 
+yadi is case me 0 aa jana hai reel me toh us level me 3 round pr bad jayege 
+isme liye mere pas reel me 
+only 3 hi symbol rhega ek toh playermy  ka dusra oppsite player ka ot tista scatter 0 ka toh iske liye reel bngei jese hki [1,1,0],i[1,1,0], [1,3,0]
+is type se iske liye mera logic bna kr do checkPaylineWin ye function work nhi krega isme dusra proper bna kr do meri condition k hisab se kesek ru ?
+const checkPaylineWin = (reels, betAmount) => {
+let totalWin = 0;
+let winningLines = [];
+let isFight = false;
+
+const payoutTable = {
+  0: 0.25,  // scatter
+  1: 5.0,    // "golden_rooster"
+  2: 1.0,    // "purple_rooster"
+  3: 0.50,   // "red_rooster"
+  4: 0.20,   // "white_rooster"
+  5: 0.07,   // "dark_blue_rooster"
+  6: 0.05,   // "blue_rooster"
+  7: 0.03    // "green_rooster"
+};
+
+const paylines = [
+  [1, 1, 1], // Payline 1
+  [0, 0, 0], // Payline 2
+  [2, 2, 2], // Payline 3
+  [0, 1, 2], // Payline 4 (Diagonal)
+  [2, 1, 0], // Payline 5(Diagonal)
+];
+
+if (!reels || !Array.isArray(reels) || reels.length < 3) {
+  return { totalWin: 0, winningLines: [] };
+}
+
+let isScatterWin = reels.every(reel => reel.includes(0));
+
+for (let l = 0; l < paylines.length; l++) {
+  let lineData = [
+      reels[0][paylines[l][0]],
+      reels[1][paylines[l][1]],
+      reels[2][paylines[l][2]],
+  ];
+
+  let mainSymbol = lineData[0];
+  if (mainSymbol == null) continue;
+
+  let matchCount = lineData.filter(s => s === mainSymbol).length;
+
+  if (matchCount == 3) {
+      let currentWin = payoutTable[mainSymbol] * betAmount;
+      let winData = {
+          symbol: mainSymbol,
+          lineNumber: l + 1,
+          line: paylines[l],
+          lineData,
+          symbolCount: matchCount,
+          totalWin: currentWin
+      };
+      totalWin += currentWin;
+      winningLines.push(winData);
+  }
+}
+
+if (isScatterWin) {
+  let scatterIndexes = reels.map(reel => reel.indexOf(0));
+  let scatterWinData = {
+      symbol: 0,
+      lineNumber: 0,
+      line: scatterIndexes,
+      lineData: [
+          reels[0][scatterIndexes[0]],
+          reels[1][scatterIndexes[1]],
+          reels[2][scatterIndexes[2]],
+      ],
+      symbolCount: 3,
+      totalWin: payoutTable[0] * betAmount * 3
+  };
+
+  // Ensure only one scatter win entry
+  if (!winningLines.some(win => win.symbol == 0)) {
+      totalWin += scatterWinData.totalWin;
+      winningLines.push(scatterWinData);
+      isFight = true;
+  }
+}
+
+return { totalWin, winningLines, isFight };
+};
+
+module.exports = { checkPaylineWin };
+isi type me function kr ke do 
+pls

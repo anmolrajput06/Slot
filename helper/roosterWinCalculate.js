@@ -26,8 +26,9 @@ const checkPaylineWin = (reels, betAmount) => {
     if (!reels || !Array.isArray(reels) || reels.length < 3) {
         return { totalWin: 0, winningLines: [] };
     }
-    console.log(reels, "reels");
 
+    isScatterWin = reels.every(reel => reel.includes(0));
+    console.log("reels", isScatterWin);
 
     for (let l = 0; l < paylines.length; l++) {
         let lineData = [
@@ -37,6 +38,7 @@ const checkPaylineWin = (reels, betAmount) => {
         ];
 
         let mainSymbol = lineData[0];
+
 
         if (mainSymbol == null) continue;
 
@@ -49,10 +51,9 @@ const checkPaylineWin = (reels, betAmount) => {
         }
 
         if (matchCount == 3) {
-            if (mainSymbol == 0) {
+            if (isScatterWin) {
                 isFight = true
             }
-
             let currentWin = payoutTable[mainSymbol] * betAmount;
             let winData = {
                 symbol: mainSymbol,

@@ -102,3 +102,53 @@ const isValidReelState = (reels) => {
 };
 
 module.exports = { spin, freeSpin };
+
+
+const paytable = {
+  0: 0.25,  //scatter
+  1: 5.0, //"golden_rooster"
+  2: 1.0,//"purple_rooster"
+  3: 0.50, //"red_rooster"
+  4: 0.20, //"white_rooster"
+  5: 0.07,// "dark_blue_rooster"
+  6: 0.05, // "blue_rooster"
+  7: 0.03  //"green_rooster"
+};
+const paylines = [
+  [1, 1, 1],
+  [0, 0, 0],
+  [2, 2, 2],
+  [0, 1, 2],
+  [2, 0, 0],
+];
+
+
+
+function playBonusGame() {
+  let totalPrize = 0;
+  let fightResults = [];
+  let round = 1;
+  let wins = [6, 8, 10, 15, 20, 30];
+
+  while (round <= 6) {
+      const playerPoints = Math.floor(Math.random() * 5) + 1;
+      const opponentPoints = Math.floor(Math.random() * 5) + 1;
+      fightResults.push({ round, playerPoints, opponentPoints });
+      if (playerPoints > opponentPoints) {
+          totalPrize += wins[round - 1];
+          round++;
+      } else break;
+  }
+  return { fightResults, totalPrize };
+}
+
+function playRiskGame(wager) {
+  const dealerCard = Math.floor(Math.random() * 13) + 2;
+  const playerCard = Math.floor(Math.random() * 13) + 2;
+  let result = "draw";
+
+  if (playerCard > dealerCard) result = "win";
+  else if (playerCard < dealerCard) result = "lose";
+
+  return { dealerCard, playerCard, result };
+}

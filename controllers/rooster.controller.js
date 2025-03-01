@@ -29,12 +29,40 @@ const spin = async (req, res) => {
     const { totalWin, isFight, winningLines } = checkPaylineWin(reels, bet);
 
     if (isFight) {
+        let reel = [1, 2, 3, 4, 5, 6, 7];
 
-        // let reel = [1, 2, 3, 4, 5, 6, 7]
-        // myplayersym = 1
-        // oppsitesym = 6
-        // relel = [[1, 6, 0],
-        // [0, 1, 6], [1, 0, 6]]
+
+        let myPlayerSymIndex = Math.floor(Math.random() * reel.length);
+        let myPlayerSym = reel.splice(myPlayerSymIndex, 1)[0];
+
+
+        let opponentPlayerSymIndex = Math.floor(Math.random() * reel.length);
+        let opponentPlayerSym = reel.splice(opponentPlayerSymIndex, 1)[0];
+
+        console.log("My Player Symbol:", myPlayerSym);
+        console.log("Opponent Player Symbol:", opponentPlayerSym);
+        const reelStrip = {
+            1: [myPlayerSym, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, myPlayerSym, opponentPlayerSym, myPlayerSym],
+            2: [myPlayerSym, opponentPlayerSym, 0, myPlayerSym, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, 0, myPlayerSym, opponentPlayerSym, 0, myPlayerSym],
+            3: [opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, myPlayerSym, opponentPlayerSym, 0, 0, myPlayerSym, opponentPlayerSym, myPlayerSym],
+        };
+
+
+        // let reels = [
+        //     await generateRandomReels(reelStrip[1]),
+        //     await generateRandomReels(reelStrip[2]),
+        //     await generateRandomReels(reelStrip[3])
+        // ];
+
+        let reels = [
+            [myPlayerSym, opponentPlayerSym, opponentPlayerSym],
+            [0, myPlayerSym, 0],
+            [0, 0, myPlayerSym],
+        ]
+
+
+        console.log(reels,"reels");
+        
     }
 
     else {

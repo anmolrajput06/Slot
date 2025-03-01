@@ -6,7 +6,7 @@ const spin = async (req, res) => {
     const { username, bet, gamble } = req.body;
     const player = await Player.findOne({ username });
     if (!player || player.balance < bet) return res.status(400).send("Insufficient balance");
-    
+
     let freeSpinActive = false
     const reelStrip = {
         1: [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 3, 3, 1, 3, 4, 4, 1, 6, 7, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6],
@@ -22,15 +22,15 @@ const spin = async (req, res) => {
 
     let reels = [
         [0, 3, 5],
-        [1, 0, 5],
-        [5, 0, 2],
+        [4, 0, 5],
+        [0, 0, 3],
     ]
     const { totalWin, isFight, winningLines } = checkPaylineWin(reels, bet);
 
 
 
     if (isFight) {
-        // console.log("fighting the game");
+        console.log("fighting the game");
 
         response = {
             bet: bet,

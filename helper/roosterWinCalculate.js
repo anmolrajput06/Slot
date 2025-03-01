@@ -1,7 +1,8 @@
 const checkPaylineWin = (reels, betAmount) => {
     let totalWin = 0;
     let winningLines = [];
-    let isFight = false
+    let isFight = false;
+
     const payoutTable = {
         0: 0.25,  // scatter
         1: 5.0,    // "golden_rooster"
@@ -21,14 +22,11 @@ const checkPaylineWin = (reels, betAmount) => {
         [2, 1, 0], // Payline 5(Diagonal)
     ];
 
-    const wildSymbol = 0;
-
     if (!reels || !Array.isArray(reels) || reels.length < 3) {
         return { totalWin: 0, winningLines: [] };
     }
 
-    isScatterWin = reels.every(reel => reel.includes(0));
-    console.log("reels", isScatterWin);
+    let isScatterWin = reels.every(reel => reel.includes(0));
 
     for (let l = 0; l < paylines.length; l++) {
         let lineData = [
@@ -38,22 +36,11 @@ const checkPaylineWin = (reels, betAmount) => {
         ];
 
         let mainSymbol = lineData[0];
-
-
         if (mainSymbol == null) continue;
 
-        let matchCount = 0;
-
-        for (let s of lineData) {
-            if (s == mainSymbol) {
-                matchCount++;
-            }
-        }
+        let matchCount = lineData.filter(s => s === mainSymbol).length;
 
         if (matchCount == 3) {
-            if (isScatterWin) {
-                isFight = true
-            }
             let currentWin = payoutTable[mainSymbol] * betAmount;
             let winData = {
                 symbol: mainSymbol,
@@ -63,15 +50,35 @@ const checkPaylineWin = (reels, betAmount) => {
                 symbolCount: matchCount,
                 totalWin: currentWin
             };
-
             totalWin += currentWin;
-
             winningLines.push(winData);
+        }
+    }
+
+    if (isScatterWin) {
+        let scatterIndexes = reels.map(reel => reel.indexOf(0));
+        let scatterWinData = {
+            symbol: 0,
+            lineNumber: 0,
+            line: scatterIndexes,
+            lineData: [
+                reels[0][scatterIndexes[0]],
+                reels[1][scatterIndexes[1]],
+                reels[2][scatterIndexes[2]],
+            ],
+            symbolCount: 3,
+            totalWin: payoutTable[0] * betAmount * 3
+        };
+
+        // Ensure only one scatter win entry
+        if (!winningLines.some(win => win.symbol == 0)) {
+            totalWin += scatterWinData.totalWin;
+            winningLines.push(scatterWinData);
+            isFight = true;
         }
     }
 
     return { totalWin, winningLines, isFight };
 };
-
 
 module.exports = { checkPaylineWin };

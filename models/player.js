@@ -7,6 +7,7 @@ const PlayerSchema = new mongoose.Schema({
     coins: { type: Number, default: 1000 },
     freeSpins: { type: Number, default: 0 },
     isfreespin: { type: Boolean, default: false },
+    gameMode:{ type: Boolean, default: false}
     // reels: { type: [[String]], required: false },
 
 },

@@ -59,10 +59,10 @@ const spin = async (req, res) => {
             [0, myPlayerSym, 0],
             [0, 0, myPlayerSym],
         ]
+        const { totalWin, isFight, winningLines } = checkFightOutcome(reels);
 
+        console.log(reels, "reels");
 
-        console.log(reels,"reels");
-        
     }
 
     else {

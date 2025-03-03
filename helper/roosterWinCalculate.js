@@ -81,55 +81,90 @@ const checkPaylineWin = (reels, betAmount) => {
     return { totalWin, winningLines, isFight };
 };
 
-
-
-const fightAmounts = [300, 400, 500, 750, 1000, 1500];
-
-const checkFightOutcome = (reels, paylines) => {
+const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym) => {
     let fightLevel = 1;
-    let fightRound = 1;
+    let fightRound = 5;
     let playerPoints = 0;
     let opponentPoints = 0;
     let maxRounds = 5;
-    
-    while (fightLevel <= 6) {
-        let myPlayerSym = reels[Math.floor(Math.random() * reels.length)][Math.floor(Math.random() * 3)];
-        let opponentPlayerSym = reels[Math.floor(Math.random() * reels.length)][Math.floor(Math.random() * 3)];
+    let totalWin = 0;
+    let isFight = false;
+    let winningLines = [];
+    const fightAmounts = [300, 400, 500, 750, 1000, 1500];
 
-        let playerWin = 0;
-        let opponentWin = 0;
+    const payoutTable = {
+        0: 0.25,
+        1: 5.0,
+        2: 1.0,
+        3: 0.50,
+        4: 0.20,
+        5: 0.07,
+        6: 0.05,
+        7: 0.03
+    };
 
-        // Check if myPlayerSym is part of a payline
-        let playerMatch = paylines.some(payline =>
-            payline.every((pos, index) => reels[index][pos] === myPlayerSym)
-        );
+    let isScatterWin = reels.every(reel => reel.includes(0));
 
-        if (playerMatch) {
-            playerWin = fightAmounts[fightLevel - 1];
-            opponentWin = 0; // Opponent gets nothing if player wins by payline match
+    for (let l = 0; l < paylines.length; l++) {
+        let lineData = [
+            reels[0][paylines[l][0]],
+            reels[1][paylines[l][1]],
+            reels[2][paylines[l][2]],
+        ];
+
+        let mainSymbol = lineData[0];
+        if (mainSymbol == null) continue;
+
+        let matchCount = lineData.filter(s => s == mainSymbol).length;
+
+        if (matchCount == 3) {
+            let currentWin = 1;
+            // let currentWin = payoutTable[mainSymbol] * fightAmounts[fightLevel - 1];
+
+            totalWin += currentWin;
+            winningLines.push({
+                symbol: mainSymbol,
+                lineNumber: l + 1,
+                line: paylines[l],
+                lineData,
+                symbolCount: matchCount,
+                totalWin: currentWin
+            });
+
+            if (mainSymbol == myPlayerSym) playerPoints += 10;
+            if (mainSymbol == opponentPlayerSym) opponentPoints += 10;
         }
-        
-        playerPoints += playerWin;
-        opponentPoints += opponentWin;
-
-        if (playerPoints > opponentPoints) {
-            fightLevel++;
-        } else if (playerPoints < opponentPoints) {
-            fightLevel++;
-        } else {
-            fightRound++;
-        }
-
-        if (fightRound > maxRounds) fightRound++;
-
-        let hasScatter = reels.some(row => row.includes(0));
-        if (hasScatter) fightRound += 3;
-
-        if (fightLevel > 6) break;
     }
 
-    return { fightLevel, fightRound, playerPoints, opponentPoints };
+    if (isScatterWin) {
+        fightRound += 3;
+    }
+
+    while (fightRound > 0) {
+        fightRound--;
+        if (playerPoints == opponentPoints) {
+            fightRound += 1;
+        }
+    }
+
+    if (opponentPoints > playerPoints) {
+        return { totalWin, isFight: false, winningLines, fightLevel, fightRound, playerPoints, opponentPoints, opponentPlayerSym };
+    }
+
+    if (playerPoints > opponentPoints) {
+        fightLevel++;
+        if (fightLevel > 6) fightLevel = 6;
+        isFight = true;
+
+        let reel = [1, 2, 3, 4, 5, 6, 7];
+        let filteredReel = reel.filter(sym => sym !== myPlayerSym && sym !== opponentPlayerSym)
+        if (filteredReel.length > 0) {
+            opponentPlayerSym = filteredReel[Math.floor(Math.random() * filteredReel.length)];
+        }
+    }
+
+    return { totalWin, isFight, winningLines, fightLevel, fightRound, playerPoints, opponentPoints, opponentPlayerSym };
 };
 
 
-module.exports = { checkPaylineWin,checkFightOutcome };
+module.exports = { checkPaylineWin, checkFightOutcome };

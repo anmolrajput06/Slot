@@ -45,6 +45,8 @@ app.get('/', (req, res) => {
   res.send('hello')
 })
 
+
+
 app.use('/game', gameRoute);
 app.use('/player',playerRoute)
 app.use('/rooster_game',RoosterRoute)

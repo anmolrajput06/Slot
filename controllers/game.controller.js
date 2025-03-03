@@ -166,6 +166,7 @@ const spin = async (req, res) => {
       response = {
         bet: betAmount,
         win: totalWin,
+        isfreespin: player.isfreespin,
         freeSpinWin: freeSpinsWon,
         reels: await convertReel(reels),
         winData: winningLines,
@@ -248,7 +249,7 @@ const spin = async (req, res) => {
             freeSpinActive,
             steckyReel: await convertReel(steckyReels),
 
-
+            isfreespin: player.isfreespin,
             currentGameMode: currentGameMode,
             // freeSpinCountReel: [],
             // freeSpinCount: 0,
@@ -377,7 +378,9 @@ const spin = async (req, res) => {
           response = {
             bet: 0,
             freeSpinActive,
+
             win: totalWin,
+            isfreespin: player.isfreespin,
             freeSpinWin: 0,
             reels: await convertReel(reels),
             winData: winningLines,

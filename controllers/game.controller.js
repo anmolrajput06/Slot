@@ -13,7 +13,7 @@ const spin = async (req, res) => {
 
     const reelStrip = {
       1: [0, 1, 2, 3, 10, 0, 1, 10, 3, 10, 2, 10, 0, 5, 10, 1, 0, 3, 2, 10, 11, 12, 10, 10, 1, 0, 10, 2, 3, 10],
-      2: [0, 1, 2, 3, 10, 2, 3,  1, 10, 4, 10, 5, 6, 10, 2, 0, 3, 1, 10, 11, 12, 10, 10, 0, 10, 3, 2, 10, 1],
+      2: [0, 1, 2, 3, 10, 2, 3, 1, 10, 4, 10, 5, 6, 10, 2, 0, 3, 1, 10, 11, 12, 10, 10, 0, 10, 3, 2, 10, 1],
       3: [0, 1, 2, 3, 10, 3, 1, 10, 2, 10, 4, 10, 5, 10, 6, 10, 3, 0, 1, 2, 11, 12, 10, 10, 10, 0, 10, 2, 3, 1],
       4: [0, 1, 2, 3, 10, 1, 2, 10, 3, 10, 4, 10, 5, 10, 6, 10, 1, 0, 3, 2, 11, 12, 10, 10, 10, 0, 10, 3, 1, 2],
       5: [0, 1, 2, 3, 10, 3, 2, 10, 1, 10, 4, 10, 5, 10, 6, 10, 2, 0, 1, 3, 11, 12, 10, 10, 10, 0, 10, 2, 3, 1]
@@ -26,6 +26,11 @@ const spin = async (req, res) => {
 
     if (player && player.isfreespin == false) {
       let freeSpinActive = false
+      let currentGameMode = 0
+
+      let beforBalance = player.coins
+      let balance = player.coins
+
 
       if (player.coins < betAmount) {
         return res.status(400).json({ msg: "Not enough coins" });
@@ -40,10 +45,10 @@ const spin = async (req, res) => {
       ];
 
       // let reels = [
-      //   [4, 11, 12, 1],
-      //   [12, 11, 11, 11],
-      //   [5, 2, 1, 10],
-      //   [11, 3, 1, 13],
+      //   [4, 11, 11, 1],
+      //   [11, 11, 1, 1],
+      //   [5, 11, 11, 10],
+      //   [1, 3, 1, 13],
       //   [12, 1, 3, 5]
       // ]
 
@@ -60,6 +65,8 @@ const spin = async (req, res) => {
       const { totalWin, winningLines } = checkPaylineWin(reels, betAmount);
 
       let totalBet = betAmount
+      balance -= betAmount;
+
       let RTP = (totalWin / totalBet) * 100;
       let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
       let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
@@ -105,6 +112,7 @@ const spin = async (req, res) => {
       if (freeSpinsWon != 0) {
         player.isfreespin = true
         freeSpinActive = true
+        currentGameMode = 1
       }
 
       await player.save();
@@ -126,6 +134,35 @@ const spin = async (req, res) => {
       // }
       let steckyReels = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
+      function getIsAnticipate(reels) {
+        let isAnticipate = [0, 0, 0, 0, 0];
+        let cumulative = 0;
+
+        for (let i = 0; i < reels.length - 1; i++) {
+          let count = reels[i].filter(symbol => symbol == 11 || symbol == 12).length;
+
+          if (count == 0) break;
+
+          cumulative += count;
+
+          if (cumulative >= 4) {
+            isAnticipate[i + 1] = 1;
+
+            let j = i + 1;
+            while (j < reels.length - 1 && reels[j].some(symbol => symbol == 11 || symbol == 12)) {
+              isAnticipate[j + 1] = 1;
+              j++;
+            }
+            break;
+          }
+        }
+
+        return isAnticipate;
+      }
+
+
+      let isAnticipate = getIsAnticipate(reels)
+
       response = {
         bet: betAmount,
         win: totalWin,
@@ -134,6 +171,12 @@ const spin = async (req, res) => {
         winData: winningLines,
         freeSpinActive,
         steckyReel: await convertReel(steckyReels),
+        currentGameMode: currentGameMode,
+        // freeSpinCountReel: [],
+        // freeSpinCount: 0,
+        beforBalance: beforBalance,
+        afterBalance: balance,
+        isAnticipate: isAnticipate,
       };
 
 
@@ -156,7 +199,7 @@ const spin = async (req, res) => {
       try {
         const reelStrip = {
           1: [0, 1, 2, 3, 10, 0, 1, 10, 3, 10, 2, 10, 0, 5, 10, 1, 0, 3, 2, 10, 11, 12, 10, 10, 1, 0, 10, 2, 3, 10],
-          2: [0, 1, 2, 3, 10, 2, 3,  1, 10, 4, 10, 5, 6, 10, 2, 0, 3, 1, 10, 11, 12, 10, 10, 0, 10, 3, 2, 10, 1],
+          2: [0, 1, 2, 3, 10, 2, 3, 1, 10, 4, 10, 5, 6, 10, 2, 0, 3, 1, 10, 11, 12, 10, 10, 0, 10, 3, 2, 10, 1],
           3: [0, 1, 2, 3, 10, 3, 1, 10, 2, 10, 4, 10, 5, 10, 6, 10, 3, 0, 1, 2, 11, 12, 10, 10, 10, 0, 10, 2, 3, 1],
           4: [0, 1, 2, 3, 10, 1, 2, 10, 3, 10, 4, 10, 5, 10, 6, 10, 1, 0, 3, 2, 11, 12, 10, 10, 10, 0, 10, 3, 1, 2],
           5: [0, 1, 2, 3, 10, 3, 2, 10, 1, 10, 4, 10, 5, 10, 6, 10, 2, 0, 1, 3, 11, 12, 10, 10, 10, 0, 10, 2, 3, 1]
@@ -167,13 +210,16 @@ const spin = async (req, res) => {
           throw new Error("reelStrip is not properly initialized!");
         }
         let reels
-
+        let beforBalance = player.coins
+        let balance = player.coins
         if (lockedSpin.spins.length === 0) {
           let freeSpinActive = true
+          let currentGameMode = 1
           player.freeSpins = Math.max(0, player.freeSpins - 1);
           if (player.freeSpins == 0) {
             player.isfreespin = false;
             freeSpinActive = false
+            currentGameMode = 0
           }
           let steckyReels = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
@@ -191,16 +237,34 @@ const spin = async (req, res) => {
           const { totalWin, winningLines } = checkPaylineWin(reels, 0);
           let finalWin = Math.min(totalWin, MAX_WIN_LIMIT);
           let adjustedWin = (finalWin * (RTP_PERCENTAGE / 100)).toFixed(2);
+          let isAnticipate = [0, 0, 0, 0, 0]
 
           response = {
             bet: 0,
             win: totalWin,
             freeSpinWin: 0,
-            freeSpinActive,
             reels: await convertReel(reels),
             winData: winningLines,
+            freeSpinActive,
             steckyReel: await convertReel(steckyReels),
+
+
+            currentGameMode: currentGameMode,
+            // freeSpinCountReel: [],
+            // freeSpinCount: 0,
+            beforBalance: beforBalance,
+            afterBalance: balance,
+            isAnticipate: isAnticipate,
           };
+          // response = {
+          //   bet: 0,
+          //   win: totalWin,
+          //   freeSpinWin: 0,
+          //   freeSpinActive,
+          //   reels: await convertReel(reels),
+          //   winData: winningLines,
+          //   steckyReel: await convertReel(steckyReels),
+          // };
 
           console.log(response, "response");
 
@@ -219,11 +283,16 @@ const spin = async (req, res) => {
           });
         }
         else {
+          let isAnticipate = [0, 0, 0, 0, 0]
           let freeSpinActive = true
+          let currentGameMode = 1
+          let beforBalance = player.coins
+          let balance = player.coins
           player.freeSpins = Math.max(0, player.freeSpins - 1);
           if (player.freeSpins == 0) {
             player.isfreespin = false;
             freeSpinActive = false
+            currentGameMode = 0
           }
           await player.save();
           let previousReels = lockedSpin.spins.length > 0 ? lockedSpin.spins[lockedSpin.spins.length - 1] : [];
@@ -313,6 +382,14 @@ const spin = async (req, res) => {
             reels: await convertReel(reels),
             winData: winningLines,
             steckyReel: await convertReel(steckyReel),
+
+
+            currentGameMode: currentGameMode,
+            // freeSpinCountReel: [],
+            // freeSpinCount: 0,
+            beforBalance: beforBalance,
+            afterBalance: balance,
+            isAnticipate: isAnticipate,
           };
 
           res.json({
@@ -392,7 +469,7 @@ const looping = async (req, res) => {
           // if (!data.result.freeSpinActive) {
           //   totalBetAmount += Number(req.body.betAmount) || 0;
           // }
-    
+
           if (!data.result.freeSpinActive) {
             totalBetAmount += betAmount;
           }

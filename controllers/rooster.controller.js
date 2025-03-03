@@ -70,14 +70,40 @@ const spin = async (req, res) => {
         ];
         const result = checkFightOutcome(reels, paylines, myPlayerSym, opponentPlayerSym, fightLevel);
 
-        // console.log(reels, "reels");
-        return res.send({res:result})
+        console.log(result, "reels");
+        // return res.send({res:result})
+
+
+        
+        
+        let response = {
+
+            bet: 0,
+            isFight: result.isFight,
+            fightLevel: result.fightLevel,
+            win: result.totalWin,
+            reels: await convertReel(reels),
+            winData: winningLines,
+            myPlayerPlayersym: result.myPlayerSym,
+            myPlayerPoints: result.playerPoints,
+            opponentPoints: result.opponentPoints,
+            opponentPlayerSym: result.opponentPlayerSym,
+            fightLevelData: result.fightHistory
+            // steckyReel: await convertReel(steckyReels),
+        };
+
+
+        return res.json({
+            statusCode: 1,
+            message: "Fight Success",
+            result: response
+        });
 
     }
 
     else {
 
-        response = {
+        let response = {
             bet: bet,
             isFight,
             win: totalWin,

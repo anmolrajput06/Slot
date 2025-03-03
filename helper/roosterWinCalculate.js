@@ -88,25 +88,21 @@ const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, figh
     let totalWin = 0;
     let isFight = false;
     let winningLines = [];
+
     const maxFightLevel = 6;
     const fightAmounts = [300, 400, 500, 750, 1000, 1500];
 
     const payoutTable = {
-        0: 0.25,
-        1: 5.0,
-        2: 1.0,
-        3: 0.50,
-        4: 0.20,
-        5: 0.07,
-        6: 0.05,
-        7: 0.03
+        0: 0.25, 1: 5.0, 2: 1.0, 3: 0.50,
+        4: 0.20, 5: 0.07, 6: 0.05, 7: 0.03
     };
 
+    // Iterate through all paylines to check for matches
     for (let l = 0; l < paylines.length; l++) {
         let lineData = [
             reels[0][paylines[l][0]],
             reels[1][paylines[l][1]],
-            reels[2][paylines[l][2]],
+            reels[2][paylines[l][2]]
         ];
 
         let mainSymbol = lineData[0];
@@ -131,33 +127,36 @@ const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, figh
             if (mainSymbol == opponentPlayerSym) opponentPoints += 10;
         }
     }
-    if (opponentPoints > playerPoints) {
-        fightHistory.push({ fightLevel, totalWin, playerPoints, opponentPoints, opponentPlayerSym, winningLines });
-        return { totalWin, isFight: false, winningLines, fightLevel, playerPoints, opponentPoints, opponentPlayerSym, fightHistory };
+
+    
+    fightHistory.push({
+        fightLevel,
+        totalWin,
+        playerPoints,
+        opponentPoints,
+        myPlayerSym,
+        opponentPlayerSym,
+        winningLines
+    });
+
+
+    if (opponentPoints >= playerPoints || fightLevel >= maxFightLevel) {
+        return { totalWin, isFight: false, winningLines, fightLevel, playerPoints, myPlayerSym, opponentPoints, opponentPlayerSym, fightHistory };
     }
 
-    if (playerPoints > opponentPoints) {
-        fightLevel++;
-        totalWin += fightAmounts[fightLevel - 1];
-        isFight = true;
 
-        fightHistory.push({ fightLevel: fightLevel - 1, totalWin, playerPoints, opponentPoints, opponentPlayerSym, winningLines });
+    fightLevel++;
+    totalWin += fightAmounts[fightLevel - 1];
+    isFight = true;
 
-        if (fightLevel > maxFightLevel) {
-            console.log(`🏆 Max Fight Level ${maxFightLevel} reached! Stopping fight.`);
-            return { totalWin, isFight, winningLines, fightLevel, playerPoints, opponentPoints, opponentPlayerSym, fightHistory };
-        }
 
-        let reel = [1, 2, 3, 4, 5, 6, 7];
-        let availableSymbols = reel.filter(sym => sym !== myPlayerSym && sym !== opponentPlayerSym);
-        if (availableSymbols.length > 0) {
-            opponentPlayerSym = availableSymbols[Math.floor(Math.random() * availableSymbols.length)];
-        }
-
-        return checkFightOutcome(generateNewReels(myPlayerSym, opponentPlayerSym), paylines, myPlayerSym, opponentPlayerSym, fightLevel, fightHistory);
+    let availableSymbols = [1, 2, 3, 4, 5, 6, 7].filter(sym => sym !== myPlayerSym && sym !== opponentPlayerSym);
+    if (availableSymbols.length > 0) {
+        opponentPlayerSym = availableSymbols[Math.floor(Math.random() * availableSymbols.length)];
     }
 
-    return { totalWin, isFight, winningLines, fightLevel, playerPoints, opponentPoints, opponentPlayerSym, fightHistory };
+
+    return checkFightOutcome(generateNewReels(myPlayerSym, opponentPlayerSym), paylines, myPlayerSym, opponentPlayerSym, fightLevel, fightHistory);
 };
 
 

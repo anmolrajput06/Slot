@@ -214,7 +214,7 @@ const spin = async (req, res) => {
         let balance = player.coins
         if (lockedSpin.spins.length === 0) {
           let freeSpinActive = true
-          let currentGameMode = 1
+          let currentGameMode = 0
           player.freeSpins = Math.max(0, player.freeSpins - 1);
           if (player.freeSpins == 0) {
             player.isfreespin = false;
@@ -285,7 +285,7 @@ const spin = async (req, res) => {
         else {
           let isAnticipate = [0, 0, 0, 0, 0]
           let freeSpinActive = true
-          let currentGameMode = 1
+          let currentGameMode = 0
           let beforBalance = player.coins
           let balance = player.coins
           player.freeSpins = Math.max(0, player.freeSpins - 1);

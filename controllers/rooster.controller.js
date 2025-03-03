@@ -59,9 +59,19 @@ const spin = async (req, res) => {
             [0, myPlayerSym, 0],
             [0, 0, myPlayerSym],
         ]
-        const { totalWin, isFight, winningLines } = checkFightOutcome(reels);
 
-        console.log(reels, "reels");
+        const fightLevel = 1;
+        const paylines = [
+            [1, 1, 1], // Payline 1
+            [0, 0, 0], // Payline 2
+            [2, 2, 2], // Payline 3
+            [0, 1, 2], // Payline 4 (Diagonal)
+            [2, 1, 0], // Payline 5(Diagonal)
+        ];
+        const result = checkFightOutcome(reels, paylines, myPlayerSym, opponentPlayerSym, fightLevel);
+
+        // console.log(reels, "reels");
+        return res.send({res:result})
 
     }
 

@@ -39,8 +39,7 @@ const spin = async (req, res) => {
         let opponentPlayerSymIndex = Math.floor(Math.random() * reel.length);
         let opponentPlayerSym = reel.splice(opponentPlayerSymIndex, 1)[0];
 
-        console.log("My Player Symbol:", myPlayerSym);
-        console.log("Opponent Player Symbol:", opponentPlayerSym);
+        
         const reelStrip = {
             1: [myPlayerSym, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, myPlayerSym, opponentPlayerSym, myPlayerSym],
             2: [myPlayerSym, opponentPlayerSym, 0, myPlayerSym, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, 0, myPlayerSym, opponentPlayerSym, 0, myPlayerSym],
@@ -70,7 +69,8 @@ const spin = async (req, res) => {
         ];
         const result = checkFightOutcome(reels, paylines, myPlayerSym, opponentPlayerSym, fightLevel);
 
-        console.log(result, "reels");
+
+        
         // return res.send({res:result})
 
 
@@ -79,11 +79,11 @@ const spin = async (req, res) => {
         let response = {
 
             bet: 0,
-            isFight: result.isFight,
+            // isFight: result.isFight,
             fightLevel: result.fightLevel,
             win: result.totalWin,
-            reels: await convertReel(reels),
-            winData: winningLines,
+            // reels: await convertReel(reels),
+            // winData: winningLines,
             myPlayerPlayersym: result.myPlayerSym,
             myPlayerPoints: result.playerPoints,
             opponentPoints: result.opponentPoints,

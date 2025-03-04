@@ -84,11 +84,13 @@ const spin = async (req, res) => {
             win: result.totalWin,
             // reels: await convertReel(reels),
             // winData: winningLines,
-            myPlayerPlayersym: result.myPlayerSym,
-            myPlayerPoints: result.playerPoints,
-            opponentPoints: result.opponentPoints,
-            opponentPlayerSym: result.opponentPlayerSym,
-            fightLevelData: result.fightHistory
+            fightData:result.fightData,
+            fightRounds:result.fightRounds
+            // myPlayerPlayersym: result.myPlayerSym,
+            // myPlayerPoints: result.playerPoints,
+            // opponentPoints: result.opponentPoints,
+            // opponentPlayerSym: result.opponentPlayerSym,
+            // fightLevelData: result.fightHistory
             // steckyReel: await convertReel(steckyReels),
         };
 

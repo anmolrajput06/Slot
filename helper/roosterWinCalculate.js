@@ -160,131 +160,106 @@ const checkPaylineWin = (reels, betAmount) => {
 // };
 
 
-
-const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, fightLevel = 1, fightRounds = 5, fightHistory = []) => {
-    let playerPoints = 0;
-    let opponentPoints = 0;
+const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, fightLevel = 1, fightRounds = 5) => {
+    let fightHistory = [];
     let totalWin = 0;
-    let isFight = false;
-    let winningLines = [];
-    let zeroSymbolFound = false;
-
-    const maxFightLevel = 6;
+    let maxFightLevel = 6;
     const fightAmounts = [300, 400, 500, 750, 1000, 1500];
-
     const payoutTable = {
-        0: 0.25,
-        1: 5.0,
-        2: 1.0,
-        3: 0.50,
-        4: 0.20,
-        5: 0.07,
-        6: 0.05,
-        7: 0.03
+        0: 0.25, 1: 5.0, 2: 1.0, 3: 0.50, 4: 0.20, 5: 0.07, 6: 0.05, 7: 0.03
     };
 
+    while (fightLevel <= maxFightLevel) {
+        let fightData = { fightLevel, rounds: [] };
 
-    for (let l = 0; l < paylines.length; l++) {
-        let lineData = [
-            reels[0][paylines[l][0]],
-            reels[1][paylines[l][1]],
-            reels[2][paylines[l][2]]
-        ];
+        let roundNumber = 1;
+        let currentFightRounds = fightRounds;
 
-        let mainSymbol = lineData[0];
-        if (mainSymbol == null) continue;
+        while (currentFightRounds > 0) {
+            let playerPoints = 0;
+            let opponentPoints = 0;
+            let winningLines = [];
 
-        let matchCount = lineData.filter(s => s == mainSymbol).length;
+            for (let l = 0; l < paylines.length; l++) {
+                let lineData = [
+                    reels[0][paylines[l][0]],
+                    reels[1][paylines[l][1]],
+                    reels[2][paylines[l][2]]
+                ];
+                let mainSymbol = lineData[0];
+                if (mainSymbol == null) continue;
 
-        if (matchCount === 3) {
-            let currentWin = payoutTable[mainSymbol] * fightAmounts[fightLevel - 1];
-            totalWin += currentWin;
+                let matchCount = lineData.filter(s => s == mainSymbol).length;
+                if (matchCount === 3) {
+                    let currentWin = payoutTable[mainSymbol] * fightAmounts[fightLevel - 1];
+                    totalWin += currentWin;
 
-            winningLines.push({
-                symbol: mainSymbol,
-                lineNumber: l + 1,
-                line: paylines[l],
-                lineData,
-                symbolCount: matchCount,
-                totalWin: currentWin
+                    winningLines.push({
+                        symbol: mainSymbol,
+                        lineNumber: l + 1,
+                        line: paylines[l],
+                        lineData,
+                        symbolCount: matchCount,
+                        totalWin: currentWin
+                    });
+
+                    if (mainSymbol == myPlayerSym) playerPoints += 1;
+                    if (mainSymbol == opponentPlayerSym) opponentPoints += 1;
+                }
+            }
+
+            fightData.rounds.push({
+                fightRounds: roundNumber,
+                totalWin,
+                playerPoints,
+                opponentPoints,
+                myPlayerSym,
+                opponentPlayerSym,
+                winningLines
             });
 
-            if (mainSymbol == myPlayerSym) playerPoints += 1;
-            if (mainSymbol == opponentPlayerSym) opponentPoints += 1;
-            if (mainSymbol == 0) zeroSymbolFound = true;
+            if (opponentPoints > playerPoints) {
+                break;
+            }
 
+            if (playerPoints === opponentPoints) {
+                currentFightRounds += 1;
+            }
+
+            currentFightRounds--;
+            roundNumber++;
         }
-    }
 
-    fightHistory.push({
-        fightLevel,
-        fightRounds,
-        totalWin,
-        playerPoints,
-        opponentPoints,
-        myPlayerSym,
-        opponentPlayerSym,
-        winningLines
-    });
+        fightHistory.push(fightData);
 
+        if (fightLevel >= maxFightLevel) {
+            break;
+        }
 
-
-    
-    if (opponentPoints > playerPoints) {
-        return { totalWin:0, isFight: false, winningLines, fightLevel, fightRounds, playerPoints, myPlayerSym, opponentPoints, opponentPlayerSym, fightHistory };
-    }
-
-
-    // if (playerPoints === opponentPoints && playerPoints !== 0) {
-    //     fightRounds = 6;
-    // }
-
-
-    if (playerPoints === opponentPoints) {
-        fightRounds += 1; 
-    }
-
-
-    if (reels.flat().every(symbol => symbol == 0)) {
-        fightRounds += 3;
-    }
-
-    // if (zeroSymbolFound) {
-    //     fightRounds += 3;
-    // }
-
-
-    if (opponentPoints < playerPoints && fightLevel < maxFightLevel) {
         fightLevel++;
     }
 
-    if (fightLevel >= maxFightLevel) {
-        return { totalWin, isFight: false, winningLines, fightLevel, fightRounds, playerPoints, myPlayerSym, opponentPoints, opponentPlayerSym, fightHistory };
-    }
-
-
-    totalWin += fightAmounts[Math.min(fightLevel - 1, fightAmounts.length - 1)];
-    isFight = true;
-
-
-    let availableSymbols = [1, 2, 3, 4, 5, 6, 7].filter(sym => sym !== myPlayerSym && sym !== opponentPlayerSym);
-    if (availableSymbols.length > 0) {
-        opponentPlayerSym = availableSymbols[Math.floor(Math.random() * availableSymbols.length)];
-    }
-
-    return checkFightOutcome(generateNewReels(myPlayerSym, opponentPlayerSym), paylines, myPlayerSym, opponentPlayerSym, fightLevel, fightRounds, fightHistory);
+    return {
+        totalWin,
+        fightLevel,
+        fightData: fightHistory
+    };
 };
+
+
 
 const generateNewReels = (myPlayerSym, opponentPlayerSym) => {
     let reels = [
-         [myPlayerSym, opponentPlayerSym, opponentPlayerSym],
-         [0, myPlayerSym, 0],
-         [0, 0, myPlayerSym],
-     ]
+        [myPlayerSym, opponentPlayerSym, opponentPlayerSym],
+        [0, myPlayerSym, 0],
+        [0, 0, myPlayerSym],
+    ];
 
- console.log("🎰 New Reels Generated:", reels);
- return reels;
+    return reels;
 };
+
+
+
 
 
 module.exports = { checkPaylineWin, checkFightOutcome };

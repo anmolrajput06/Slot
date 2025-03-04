@@ -767,3 +767,15 @@ const checkFightOutcome = (reels, paylines) => {
 
   return { totalWin, isFight, winningLines, fightLevel, fightRound, playerPoints, opponentPoints };
 };
+
+
+
+
+
+
+
+
+
+
+
+

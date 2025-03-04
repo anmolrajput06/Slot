@@ -39,7 +39,7 @@ const spin = async (req, res) => {
         let opponentPlayerSymIndex = Math.floor(Math.random() * reel.length);
         let opponentPlayerSym = reel.splice(opponentPlayerSymIndex, 1)[0];
 
-        
+
         const reelStrip = {
             1: [myPlayerSym, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, myPlayerSym, opponentPlayerSym, myPlayerSym],
             2: [myPlayerSym, opponentPlayerSym, 0, myPlayerSym, opponentPlayerSym, myPlayerSym, 0, opponentPlayerSym, 0, myPlayerSym, opponentPlayerSym, 0, myPlayerSym],
@@ -47,17 +47,28 @@ const spin = async (req, res) => {
         };
 
 
-        // let reels = [
-        //     await generateRandomReels(reelStrip[1]),
-        //     await generateRandomReels(reelStrip[2]),
-        //     await generateRandomReels(reelStrip[3])
-        // ];
-
         let reels = [
-            [myPlayerSym, opponentPlayerSym, opponentPlayerSym],
-            [0, myPlayerSym, 0],
-            [0, 0, myPlayerSym],
-        ]
+            await generateRandomReels(reelStrip[1]),
+            await generateRandomReels(reelStrip[2]),
+            await generateRandomReels(reelStrip[3])
+        ];
+        console.log(reels, "reels");
+
+
+        // [[0, 6, 2],
+        // [6, 0, 2],
+        // [2, 6, 2]] reels
+
+        // [[4, 5, 5],
+        // [0, 4, 0],
+        // [5, 4, 0]] reels
+
+        // let reels = [
+        //     [myPlayerSym, opponentPlayerSym, opponentPlayerSym],
+        //     [0, myPlayerSym, 0],
+        //     [0, myPlayerSym, myPlayerSym],
+        // ]
+        console.log(reels, "--------------");
 
         const fightLevel = 1;
         const paylines = [
@@ -70,12 +81,12 @@ const spin = async (req, res) => {
         const result = checkFightOutcome(reels, paylines, myPlayerSym, opponentPlayerSym, fightLevel);
 
 
-        
+
         // return res.send({res:result})
 
 
-        
-        
+
+
         let response = {
 
             bet: 0,
@@ -84,8 +95,8 @@ const spin = async (req, res) => {
             win: result.totalWin,
             // reels: await convertReel(reels),
             // winData: winningLines,
-            fightData:result.fightData,
-            fightRounds:result.fightRounds
+            fightData: result.fightData,
+            fightRounds: result.fightRounds
             // myPlayerPlayersym: result.myPlayerSym,
             // myPlayerPoints: result.playerPoints,
             // opponentPoints: result.opponentPoints,

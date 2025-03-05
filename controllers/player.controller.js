@@ -3,9 +3,8 @@ const RoosterPlayer = require("../models/roosterPlayer")
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-const JWT_SECRET = "your_secret_key"; // Change this in production!
+const JWT_SECRET = "your_secret_key"; 
 
-// 📌 Register Player
 const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -41,7 +40,6 @@ const login = async (req, res) => {
   }
 };
 
-// 📌 Get Player Info (Protected)
 const getProfile = async (req, res) => {
   try {
     const player = await Player.findById(req.playerId).select("-password");
@@ -93,7 +91,6 @@ const loginRoster = async (req, res) => {
   }
 };
 
-// 📌 Get Player Info (Protected)
 const getProfileRoster = async (req, res) => {
   try {
     const player = await RoosterPlayer.findById(req.playerId).select("-password");

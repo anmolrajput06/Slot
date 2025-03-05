@@ -1,3 +1,5 @@
+const redis = require("../helper/redis")
+
 const checkPaylineWin = (reels, betAmount) => {
     let totalWin = 0;
     let winningLines = [];
@@ -43,10 +45,10 @@ const checkPaylineWin = (reels, betAmount) => {
         if (matchCount == 3) {
             let currentWin = payoutTable[mainSymbol] * betAmount;
             let winData = {
-                symbol: mainSymbol,
+                // symbol: mainSymbol,
                 lineNumber: l + 1,
                 line: paylines[l],
-                lineData,
+                // lineData,
                 symbolCount: matchCount,
                 totalWin: currentWin
             };
@@ -97,7 +99,16 @@ const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, figh
     let totalWin = 0;
     let maxFightLevel = 6;
     const fightAmounts = [300, 400, 500, 750, 1000, 1500];
-    const payoutTable = { 0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 };
+    const payoutTable = {
+        0: 1,
+        1: 1,
+        2: 1,
+        3: 1,
+        4: 1,
+        5: 1,
+        6: 1,
+        7: 1
+    };
     let opponentSymbols = [1, 2, 3, 4, 5, 6, 7].filter(sym => sym !== myPlayerSym);
 
     while (fightLevel <= maxFightLevel) {
@@ -143,7 +154,7 @@ const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, figh
                         symbol: mainSymbol,
                         lineNumber: l + 1,
                         line: paylines[l],
-                        lineData,
+                        // lineData,
                         symbolCount: matchCount,
                         totalWin: currentWin
                     });
@@ -164,6 +175,7 @@ const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, figh
             totalOpponentPoints += opponentPoints;
 
             fightData.rounds.push({
+                reels,
                 fightRounds: roundNumber,
                 totalWin: winningLines.length > 0 ? totalWin : 0,
                 playerPoints,
@@ -179,11 +191,11 @@ const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, figh
             currentFightRounds += extraRounds;
         }
 
-        if (totalPlayerPoints === totalOpponentPoints) {
+        if (totalPlayerPoints == totalOpponentPoints) {
             fightRounds++;
         } else if (totalOpponentPoints > totalPlayerPoints) {
             fightHistory.push(fightData);
-            return { totalWin, fightLevel, fightData: fightHistory };
+            return { reels, totalWin, fightLevel, fightData: fightHistory };
         }
 
         fightHistory.push(fightData);
@@ -191,7 +203,7 @@ const checkFightOutcome = (reels, paylines, myPlayerSym, opponentPlayerSym, figh
         fightLevel++;
     }
 
-    return { totalWin, fightLevel, fightData: fightHistory };
+    return { reels, totalWin, fightLevel: fightLevel - 1, fightData: fightHistory };
 };
 
 module.exports = { checkPaylineWin, checkFightOutcome };

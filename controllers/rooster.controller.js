@@ -1,4 +1,5 @@
 const Player = require("../models/roosterPlayer.js");
+const redis = require("../helper/redis.js")
 const { checkPaylineWin, checkFightOutcome } = require("../helper/roosterWinCalculate.js")
 
 
@@ -52,7 +53,7 @@ const spin = async (req, res) => {
             await generateRandomReels(reelStrip[2]),
             await generateRandomReels(reelStrip[3])
         ];
-        console.log(reels, "reels");
+
 
 
         // [[0, 6, 2],
@@ -68,7 +69,7 @@ const spin = async (req, res) => {
         //     [0, myPlayerSym, 0],
         //     [0, myPlayerSym, myPlayerSym],
         // ]
-        console.log(reels, "--------------");
+
 
         const fightLevel = 1;
         const paylines = [
@@ -90,9 +91,10 @@ const spin = async (req, res) => {
         let response = {
 
             bet: 0,
-            // isFight: result.isFight,
+            // isFight: isFight,
+            // reels:result.reels,
             fightLevel: result.fightLevel,
-            win: result.totalWin,
+            // win: result.totalWin,
             // reels: await convertReel(reels),
             // winData: winningLines,
             fightData: result.fightData,
@@ -146,65 +148,75 @@ const generateRandomReels = (reelStrip) => {
 };
 
 
-
 const looping = async (req, res) => {
     try {
+        let totalPlayerPoints = 0;
+        let totalOpponentPoints = 0;
+        let totalWinnings = 0;
+        let totalSpins = 1000000;
+        let totalBet = 0;
         let totalWinSum = 0;
-        let totalBetAmount = 0;
-        let totalFreeSpins = 0;
         let totalWins = 0;
-        let results = [];
-        const betAmount = Number(req.body.bet) || 0;
-        for (let i = 1; i <= 100000; i++) {
+        let totalFreeSpins = 0;
+        const betAmount = Number(req.body.bet) || 10; // Default bet amount
+
+        for (let i = 1; i <= totalSpins; i++) {
             const Req = { body: req.body };
             const Res = {
                 json: (data) => {
+                    if (!data.result || !data.result.fightData) return;
 
-                    if (data.result.win !== undefined) {
-                        totalWinSum += data.result.win;
-                        if (data.result.win > 0) {
-                            totalWins++;
-                        }
-                    }
-                    if (data.result.freeSpinWin !== undefined) {
-                        totalFreeSpins += data.result.freeSpinWin
-                    }
-                    // if (!data.result.freeSpinActive) {
-                    //   totalBetAmount += Number(req.body.betAmount) || 0;
-                    // }
+                    let fightData = data.result.fightData; // Get fight data dynamically
 
-                    if (!data.result.freeSpinActive) {
-                        totalBetAmount += betAmount;
-                    }
+                    fightData.forEach(fight => {
+                        let fightPlayerPoints = 0;
+                        let fightOpponentPoints = 0;
+                        let fightTotalWin = 0;
 
-                    results.push(data);
+                        fight.rounds.forEach(round => {
+                            fightPlayerPoints += round.playerPoints;
+                            fightOpponentPoints += round.opponentPoints;
+                            fightTotalWin = round.totalWin;
+                            totalBet += round.bet || betAmount;
+                        });
+
+                        totalPlayerPoints += fightPlayerPoints;
+                        totalOpponentPoints += fightOpponentPoints;
+                        totalWinnings = fightTotalWin;
+                        totalWinSum += fightTotalWin;
+
+                        if (fightTotalWin > 0) totalWins++;
+
+
+                    });
                 },
                 status: () => Res,
             };
 
-            console.log(i, "=>", "RTP", (totalWinSum / totalBetAmount) * 100, "totalWins count => ", totalWins, "total win= ", totalWinSum, "total bet = ", totalBetAmount);
             await spin(Req, Res);
+
+            console.log(spin, "=>", "RTP", (totalWinSum / totalBet) * 100, "totalWins count =>", totalWins, "total win=", totalWinSum, "total bet =", totalBet);
         }
 
-        // totalBetAmount -= totalFreeSpins * Number(req.body.betAmount);
-        let RTP = (totalWinSum / totalBetAmount) * 100;
+        let RTP = totalBet > 0 ? (totalWinnings / totalBet) * 100 : 0;
 
         res.json({
-            message: "1000 spins complete",
-            totalWin: totalWinSum,
-            totalBet: totalBetAmount < 0 ? 0 : totalBetAmount,
-            totalRTP: RTP,
-            totalFreeSpins: totalFreeSpins,
-            // totalWinsCount: totalWins, // Add total winning count
-            // sampleResults: results,
+            message: "100 spins complete",
+            totalPlayerPoints,
+            totalOpponentPoints,
+            totalWinnings,
+            totalBet,
+            totalWinSum,
+            totalWins,
+            totalRTP: RTP.toFixed(2),
+            totalFreeSpins
         });
-    } catch (error) {
-        console.log(error);
 
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Error in looping", error });
     }
 };
-
 
 async function convertReel(reels) {
 
